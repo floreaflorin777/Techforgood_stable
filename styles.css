@@ -11,8 +11,8 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    background-color: #333;
-    color: #fff;
+    background-color: #ffffff;
+    color: #000000;
 }
 
 header .logo {
@@ -37,7 +37,7 @@ header nav ul li {
 }
 
 header nav ul li a {
-    color: #fff;
+    color: #000000;
     text-decoration: none;
 }
 
@@ -70,7 +70,7 @@ main p {
 }
 
 .admin-btn {
-    background-color: #4CAF50;
+    background-color: #6c773d;
     color: white;
 }
 
