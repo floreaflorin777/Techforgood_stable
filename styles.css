@@ -13,18 +13,19 @@ header {
     padding: 10px 20px;
     background-color: #ffffff;
     color: #000000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 header .logo {
     display: flex;
     align-items: center;
-    font-size: 0.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
 }
 
 header .logo img {
-    height: 30px;
-    width: 30px;
+    height: 40px;
+    width: 40px;
     margin-right: 10px;
 }
 
@@ -42,6 +43,7 @@ header nav ul li {
 header nav ul li a {
     color: #000000;
     text-decoration: none;
+    font-weight: bold;
 }
 
 main {
@@ -70,6 +72,7 @@ main p {
     border-radius: 20px;
     cursor: pointer;
     font-size: 1rem;
+    transition: background-color 0.3s;
 }
 
 .admin-btn {
@@ -77,9 +80,90 @@ main p {
     color: white;
 }
 
+.admin-btn:hover {
+    background-color: #FFC107;
+}
+
 .employee-btn {
     background-color: #FFD700;
-    color: rgb(255, 255, 255);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.employee-btn:hover {
+    background-color: #FFC107;
+}
+
+.login-form {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    margin: 50px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.login-form h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.btn {
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+}
+
+.login-submit-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.login-submit-btn:hover {
+    background-color: #45A049;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    margin-top: 10px;
+}
+
+.cancel-btn:hover {
+    background-color: #e53935;
 }
 
 .main-image {
@@ -98,16 +182,15 @@ main p {
 footer {
     background-color: #7c7c7c33;
     color: #000000;
-    padding: 2px 2px; 
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 80px; 
+    min-height: 80px;
 }
 
 footer p {
     margin: 0;
-    margin-left: 15px;
 }
 
 footer .footer-links {
@@ -119,5 +202,8 @@ footer .footer-links a {
     color: #000000;
     text-decoration: none;
     font-size: 0.9rem;
-    gap: 10px;
+}
+
+footer .footer-links a:hover {
+    text-decoration: underline;
 }
