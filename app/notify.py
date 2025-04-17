@@ -40,8 +40,16 @@ class NotificationService:
         return notification
 
     def send_shift_notification(self, volunteer, shift):
+        """Send notification about assigned shift to a volunteer"""
+        # Get the associated user from the volunteer profile
+        user = volunteer.user
+        
+        if not user:
+            current_app.logger.error(f"Cannot send shift notification: volunteer (id: {volunteer.id}) has no associated user")
+            return None
+            
         message = f"New shift assigned: {shift.start_time} to {shift.end_time}"
-        self.send_notification(volunteer, message, 'email')
+        return self.send_notification(user, message, 'email')
 
     def send_inventory_alert(self, item):
         message = f"Alert: {item.name} is running low. Current quantity: {item.quantity} {item.unit}"

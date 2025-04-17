@@ -10,7 +10,7 @@ def get_ssh_tunnel():
         remote_bind_address=(current_app.config['DB_HOST'], current_app.config['DB_PORT'])
     )
 
-def get_database_url():
-    """Get the database URL through the SSH tunnel."""
+def get_tunneled_database_url():
+    """Get the database URL through the SSH tunnel (for non-PythonAnywhere environments)."""
     with get_ssh_tunnel() as tunnel:
-        return f"mysql+pymysql://{current_app.config['DB_USER']}:{current_app.config['DB_PASSWORD']}@127.0.0.1:{tunnel.local_bind_port}/{current_app.config['DB_NAME']}" 
+        return f"mysql+pymysql://{current_app.config['DB_USER']}:{current_app.config['DB_PASSWORD']}@127.0.0.1:{tunnel.local_bind_port}/{current_app.config['DB_NAME']}"

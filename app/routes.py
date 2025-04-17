@@ -94,6 +94,7 @@ def get_volunteers():
     volunteers = Volunteer.query.all()
     return jsonify([{
         'id': v.id,
+        'user_id': v.user_id,
         'name': v.name,
         'email': v.email,
         'phone': v.phone,
@@ -130,25 +131,58 @@ def add_volunteer():
         if not phone_valid:
             return jsonify({'error': phone_error}), 400
 
-    volunteer = Volunteer(
+    # First create a user
+    user = User(
         name=data['name'],
         email=data['email'],
         phone=data.get('phone'),
+        role='volunteer'
+    )
+    user.set_password(data.get('password', 'default_password'))
+    
+    # Then create the volunteer profile linked to the user
+    volunteer = Volunteer(
         availability=json.dumps(data.get('availability', {})),
         skills=data.get('skills')
     )
-    volunteer.set_password(data.get('password', 'default_password'))
     
+    # Add both to session but commit after setting up the relationship
+    db.session.add(user)
+    db.session.flush()  # This assigns an ID to the user
+    
+    # Link the volunteer to the user
+    volunteer.user_id = user.id
     db.session.add(volunteer)
     db.session.commit()
-    current_app.logger.info(f'New volunteer added: {volunteer.email}')
-    return jsonify({'message': 'Volunteer added successfully', 'id': volunteer.id}), 201
+    
+    current_app.logger.info(f'New volunteer added: {user.email}')
+    return jsonify({
+        'message': 'Volunteer added successfully', 
+        'id': volunteer.id,
+        'user_id': user.id
+    }), 201
 
 # Delete a volunteer
-@main.route('/volunteers/<int:volunteer_id>', methods=['DELETE'])
+@main.route('/api/volunteers/<int:volunteer_id>', methods=['DELETE'])
+@require_role('admin')
 def delete_volunteer(volunteer_id):
     volunteer = Volunteer.query.get_or_404(volunteer_id)
+    
+    # Get the associated user
+    user = User.query.get(volunteer.user_id)
+    
+    # Delete volunteer profile first
     db.session.delete(volunteer)
+    
+    if user:
+        # Only delete the user if they exist and have role=volunteer
+        # This prevents accidental deletion of admin or manager users
+        if user.role == 'volunteer':
+            db.session.delete(user)
+        else:
+            # If the user has a different role, just clear the volunteer flag
+            current_app.logger.info(f"User {user.email} has role {user.role}, not deleting user record")
+    
     db.session.commit()
     return jsonify({"message": f"Volunteer with id {volunteer_id} deleted."}), 200
 
@@ -258,17 +292,26 @@ def update_inventory_item(item_id):
 @main.route('/api/analytics/volunteers', methods=['GET'])
 @jwt_required()
 def volunteer_analytics():
+    # Total volunteers
     total_volunteers = Volunteer.query.count()
-    active_volunteers = Volunteer.query.filter_by(is_active=True).count()
+    
+    # Active volunteers (where associated user is active)
+    active_volunteers = Volunteer.query.join(User, Volunteer.user_id == User.id).filter(User.is_active == True).count()
+    
+    # Shifts this month
     shifts_this_month = Shift.query.filter(
         Shift.start_time >= datetime.utcnow().replace(day=1),
         Shift.start_time < (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
     ).count()
 
+    # Additional analytics
+    volunteers_with_shifts = db.session.query(Volunteer.id).distinct().join(Shift).count()
+    
     return jsonify({
         'total_volunteers': total_volunteers,
         'active_volunteers': active_volunteers,
-        'shifts_this_month': shifts_this_month
+        'shifts_this_month': shifts_this_month,
+        'volunteers_with_shifts': volunteers_with_shifts
     }), 200
 
 @main.route('/api/analytics/inventory', methods=['GET'])

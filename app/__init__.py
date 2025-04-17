@@ -26,14 +26,26 @@ def create_app(config_name='development'):
     app.config.from_object(config[config_name])
     
     # Setup logging
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-    
-    file_handler = RotatingFileHandler(
-        f'logs/foodbank_{datetime.now().strftime("%Y%m%d")}.log',
-        maxBytes=1024 * 1024,  # 1MB
-        backupCount=10
-    )
+    # Create logs directory in a safe way
+    try:
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+            print("Created logs directory")
+    except Exception as e:
+        print(f"Warning: Could not create logs directory: {str(e)}")
+        
+    # Configure file handler with error handling
+    try:
+        log_path = f'logs/foodbank_{datetime.now().strftime("%Y%m%d")}.log'
+        file_handler = RotatingFileHandler(
+            log_path,
+            maxBytes=1024 * 1024,  # 1MB
+            backupCount=10
+        )
+        print(f"Configured logging to: {log_path}")
+    except Exception as e:
+        print(f"Warning: Could not configure file logging: {str(e)}")
+        file_handler = logging.NullHandler()
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
@@ -55,8 +67,8 @@ def create_app(config_name='development'):
     limiter.init_app(app)
     jwt.init_app(app)
     
-    # Setup database with SSH tunnel
-    from db_tunnel import get_database_url
+    # Setup database connection
+    from app.database import get_database_url
     app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
     db.init_app(app)
     
@@ -67,4 +79,4 @@ def create_app(config_name='development'):
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     
-    return app 
+    return app

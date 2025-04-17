@@ -8,17 +8,21 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
     
-    # SSH Tunnel Configuration
-    SSH_HOST = os.getenv('SSH_HOST')
+    # SSH Tunnel Configuration (for local development)
+    SSH_HOST = os.getenv('SSH_HOST', 'ssh.eu.pythonanywhere.com')
     SSH_PORT = int(os.getenv('SSH_PORT', 22))
     SSH_USERNAME = os.getenv('SSH_USERNAME')
     SSH_PASSWORD = os.getenv('SSH_PASSWORD')
     
     # Database Configuration
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    # Default values for PythonAnywhere
+    is_pythonanywhere = 'PYTHONANYWHERE_DOMAIN' in os.environ
+    default_db_host = 'florinm12.mysql.eu.pythonanywhere-services.com' if is_pythonanywhere else 'localhost'
+    
+    DB_HOST = os.getenv('DB_HOST', default_db_host)
     DB_PORT = int(os.getenv('DB_PORT', 3306))
-    DB_NAME = os.getenv('DB_NAME', 'foodbank')
-    DB_USER = os.getenv('DB_USER')
+    DB_NAME = os.getenv('DB_NAME', 'florinm12$foodbank' if is_pythonanywhere else 'foodbank')
+    DB_USER = os.getenv('DB_USER', 'florinm12' if is_pythonanywhere else 'root')
     DB_PASSWORD = os.getenv('DB_PASSWORD')
     
     # SQLAlchemy Configuration
@@ -57,4 +61,4 @@ config = {
     'testing': TestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig
-} 
+}
