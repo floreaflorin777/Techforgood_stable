@@ -8,4 +8,7 @@ twilio==7.3.0
 Werkzeug==2.0.1
 SQLAlchemy==1.4.23
 PyJWT==2.1.0
-python-dateutil==2.8.2 
+python-dateutil==2.8.2
+sshtunnel==0.4.0
+paramiko==2.11.0
+PyMySQL==1.1.0 
