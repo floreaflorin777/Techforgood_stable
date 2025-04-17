@@ -44,6 +44,36 @@ A comprehensive system for managing food bank operations, including volunteer sc
 
 ## Installation
 
+### PythonAnywhere Deployment
+
+1. Clone the repository in your PythonAnywhere account:
+```bash
+git clone https://github.com/yourusername/foodbank.git
+cd foodbank
+```
+
+2. Create a virtual environment and activate it:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Create a `.env` file based on the `.env.example` template and fill in your PythonAnywhere database credentials.
+
+5. Initialize the database:
+```bash
+python init_db.py
+```
+
+6. Configure your PythonAnywhere web app to use the WSGI file (wsgi.py) in this project.
+
+### Local Development Setup
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/foodbank.git
@@ -61,29 +91,29 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables:
-```bash
-export FLASK_APP=run.py
-export FLASK_ENV=development
-export SECRET_KEY=your-secret-key
-export JWT_SECRET_KEY=your-jwt-secret
-export DATABASE_URL=sqlite:///foodbank.db
-export TWILIO_ACCOUNT_SID=your-twilio-sid
-export TWILIO_AUTH_TOKEN=your-twilio-token
-export TWILIO_WHATSAPP_NUMBER=your-twilio-whatsapp-number
-```
+4. Create a `.env` file based on the `.env.example` template and configure for local development:
+   - For direct local database: Set your local MySQL credentials
+   - For PythonAnywhere database via SSH tunnel: Set SSH tunnel credentials
 
 5. Initialize the database:
 ```bash
-flask db init
-flask db migrate
-flask db upgrade
+python init_db.py
 ```
 
 6. Run the application:
 ```bash
 flask run
 ```
+
+### Database Connection
+
+The application supports two database connection modes:
+
+1. **Direct Connection** (PythonAnywhere): When deployed on PythonAnywhere, the app connects directly to the MySQL database.
+
+2. **SSH Tunnel Connection** (Local Development): For local development connecting to a PythonAnywhere database, an SSH tunnel is created automatically.
+
+The connection mode is detected automatically based on the environment.
 
 ## API Documentation
 

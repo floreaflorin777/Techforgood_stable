@@ -1,13 +1,34 @@
-from flask import Blueprint, jsonify, request, current_app
-from app.models import db, User, Volunteer, InventoryItem, Shift
+from flask import Blueprint, jsonify, request, current_app, render_template, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.notify import NotificationService
 from datetime import datetime, timedelta
 import json
 import re
 from sqlalchemy import func
+import os
 
 main = Blueprint('main', __name__)
+
+# Home route
+@main.route('/')
+def index():
+    return send_from_directory(os.path.join(os.getcwd()), 'index.html')
+
+@main.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(os.path.join(os.getcwd()), filename)
+
+@main.route('/admin/dashboard')
+def admin_dashboard():
+    return "Admin Dashboard - Coming Soon"
+
+@main.route('/volunteer/dashboard')
+def volunteer_dashboard():
+    return "Volunteer Dashboard - Coming Soon"
+
+# Import models and services after Blueprint creation to avoid circular imports
+from app.models import db, User, Volunteer, InventoryItem, Shift
+from app.notify import NotificationService
+
 notification_service = NotificationService()
 
 # Validation functions
@@ -54,18 +75,14 @@ def internal_error(error):
 def require_role(role):
     def decorator(f):
         @jwt_required()
-        def decorated_function(*args, **kwargs):
+        def wrapper(*args, **kwargs):
             current_user = get_jwt_identity()
             if current_user['role'] != role:
                 return jsonify({'error': 'Forbidden', 'message': f'Requires {role} role'}), 403
             return f(*args, **kwargs)
-        return decorated_function
+        wrapper.__name__ = f.__name__  # Preserve the original function name
+        return wrapper
     return decorator
-
-# Home route
-@main.route('/')
-def home():
-    return jsonify({"message": "tech for good API is working!"})
 
 # --------------------
 # Volunteer Routes
@@ -77,6 +94,7 @@ def get_volunteers():
     volunteers = Volunteer.query.all()
     return jsonify([{
         'id': v.id,
+        'user_id': v.user_id,
         'name': v.name,
         'email': v.email,
         'phone': v.phone,
@@ -113,25 +131,58 @@ def add_volunteer():
         if not phone_valid:
             return jsonify({'error': phone_error}), 400
 
-    volunteer = Volunteer(
+    # First create a user
+    user = User(
         name=data['name'],
         email=data['email'],
         phone=data.get('phone'),
+        role='volunteer'
+    )
+    user.set_password(data.get('password', 'default_password'))
+    
+    # Then create the volunteer profile linked to the user
+    volunteer = Volunteer(
         availability=json.dumps(data.get('availability', {})),
         skills=data.get('skills')
     )
-    volunteer.set_password(data.get('password', 'default_password'))
     
+    # Add both to session but commit after setting up the relationship
+    db.session.add(user)
+    db.session.flush()  # This assigns an ID to the user
+    
+    # Link the volunteer to the user
+    volunteer.user_id = user.id
     db.session.add(volunteer)
     db.session.commit()
-    current_app.logger.info(f'New volunteer added: {volunteer.email}')
-    return jsonify({'message': 'Volunteer added successfully', 'id': volunteer.id}), 201
+    
+    current_app.logger.info(f'New volunteer added: {user.email}')
+    return jsonify({
+        'message': 'Volunteer added successfully', 
+        'id': volunteer.id,
+        'user_id': user.id
+    }), 201
 
 # Delete a volunteer
-@main.route('/volunteers/<int:volunteer_id>', methods=['DELETE'])
+@main.route('/api/volunteers/<int:volunteer_id>', methods=['DELETE'])
+@require_role('admin')
 def delete_volunteer(volunteer_id):
     volunteer = Volunteer.query.get_or_404(volunteer_id)
+    
+    # Get the associated user
+    user = User.query.get(volunteer.user_id)
+    
+    # Delete volunteer profile first
     db.session.delete(volunteer)
+    
+    if user:
+        # Only delete the user if they exist and have role=volunteer
+        # This prevents accidental deletion of admin or manager users
+        if user.role == 'volunteer':
+            db.session.delete(user)
+        else:
+            # If the user has a different role, just clear the volunteer flag
+            current_app.logger.info(f"User {user.email} has role {user.role}, not deleting user record")
+    
     db.session.commit()
     return jsonify({"message": f"Volunteer with id {volunteer_id} deleted."}), 200
 
@@ -199,98 +250,82 @@ def get_inventory():
 @require_role('manager')
 def add_inventory_item():
     data = request.json
-    try:
-        if not data.get('name') or not data.get('quantity'):
-            return jsonify({'error': 'Missing required fields'}), 400
+    if not data or not data.get('name') or not data.get('quantity'):
+        return jsonify({'error': 'Missing required fields'}), 400
 
-        if not isinstance(data['quantity'], (int, float)) or data['quantity'] < 0:
-            return jsonify({'error': 'Quantity must be a positive number'}), 400
-
-        item = InventoryItem(
-            name=data['name'],
-            quantity=data['quantity'],
-            unit=data.get('unit'),
-            category=data.get('category'),
-            expiry_date=datetime.fromisoformat(data['expiry_date']) if data.get('expiry_date') else None,
-            added_by=get_jwt_identity()['id']
-        )
-        db.session.add(item)
-        db.session.commit()
-        current_app.logger.info(f'New inventory item added: {item.name}')
-        return jsonify({'message': 'Item added successfully', 'id': item.id}), 201
-    except Exception as e:
-        current_app.logger.error(f'Error adding inventory item: {str(e)}')
-        return jsonify({'error': 'Invalid item data', 'message': str(e)}), 400
+    item = InventoryItem(
+        name=data['name'],
+        quantity=data['quantity'],
+        unit=data.get('unit'),
+        category=data.get('category'),
+        expiry_date=datetime.fromisoformat(data['expiry_date']) if data.get('expiry_date') else None,
+        added_by=get_jwt_identity()['id']
+    )
+    db.session.add(item)
+    db.session.commit()
+    current_app.logger.info(f'New inventory item added: {item.name}')
+    return jsonify({'message': 'Inventory item added successfully', 'id': item.id}), 201
 
 @main.route('/api/inventory/<int:item_id>', methods=['PUT'])
 @require_role('manager')
 def update_inventory_item(item_id):
     item = InventoryItem.query.get_or_404(item_id)
     data = request.json
-    
-    try:
-        if 'quantity' in data:
-            item.quantity = data['quantity']
-        if 'name' in data:
-            item.name = data['name']
-        if 'unit' in data:
-            item.unit = data['unit']
-        if 'category' in data:
-            item.category = data['category']
-        if 'expiry_date' in data:
-            item.expiry_date = datetime.fromisoformat(data['expiry_date'])
-        
-        db.session.commit()
-        return jsonify({'message': 'Item updated successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': 'Invalid update data', 'message': str(e)}), 400
 
+    if 'quantity' in data:
+        item.quantity = data['quantity']
+    if 'unit' in data:
+        item.unit = data['unit']
+    if 'category' in data:
+        item.category = data['category']
+    if 'expiry_date' in data:
+        item.expiry_date = datetime.fromisoformat(data['expiry_date'])
+
+    db.session.commit()
+    current_app.logger.info(f'Inventory item updated: {item.name}')
+    return jsonify({'message': 'Inventory item updated successfully'}), 200
+
+# --------------------
 # Analytics Routes
+# --------------------
+
 @main.route('/api/analytics/volunteers', methods=['GET'])
 @jwt_required()
 def volunteer_analytics():
+    # Total volunteers
     total_volunteers = Volunteer.query.count()
     
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-    active_volunteers = db.session.query(Volunteer).join(Shift).filter(
-        Shift.start_time >= thirty_days_ago
-    ).distinct().count()
+    # Active volunteers (where associated user is active)
+    active_volunteers = Volunteer.query.join(User, Volunteer.user_id == User.id).filter(User.is_active == True).count()
     
-    weekly_hours = db.session.query(
-        func.date_trunc('week', Shift.start_time).label('week'),
-        func.sum(Shift.end_time - Shift.start_time).label('total_hours')
-    ).group_by('week').order_by('week').all()
+    # Shifts this month
+    shifts_this_month = Shift.query.filter(
+        Shift.start_time >= datetime.utcnow().replace(day=1),
+        Shift.start_time < (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1)
+    ).count()
+
+    # Additional analytics
+    volunteers_with_shifts = db.session.query(Volunteer.id).distinct().join(Shift).count()
     
     return jsonify({
         'total_volunteers': total_volunteers,
         'active_volunteers': active_volunteers,
-        'weekly_hours': [{
-            'week': week.strftime('%Y-%m-%d'),
-            'hours': total_hours.total_seconds() / 3600
-        } for week, total_hours in weekly_hours]
-    })
+        'shifts_this_month': shifts_this_month,
+        'volunteers_with_shifts': volunteers_with_shifts
+    }), 200
 
 @main.route('/api/analytics/inventory', methods=['GET'])
 @jwt_required()
 def inventory_analytics():
     total_items = InventoryItem.query.count()
-    
-    items_by_category = db.session.query(
-        InventoryItem.category,
-        func.count(InventoryItem.id).label('count'),
-        func.sum(InventoryItem.quantity).label('total_quantity')
-    ).group_by(InventoryItem.category).all()
-    
+    low_stock_items = InventoryItem.query.filter(InventoryItem.quantity < 10).count()
     expiring_soon = InventoryItem.query.filter(
+        InventoryItem.expiry_date.isnot(None),
         InventoryItem.expiry_date <= datetime.utcnow() + timedelta(days=7)
     ).count()
-    
+
     return jsonify({
         'total_items': total_items,
-        'items_by_category': [{
-            'category': category,
-            'count': count,
-            'total_quantity': total_quantity
-        } for category, count, total_quantity in items_by_category],
+        'low_stock_items': low_stock_items,
         'expiring_soon': expiring_soon
-    })
+    }), 200

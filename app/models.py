@@ -21,12 +21,34 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Volunteer(User):
+class Volunteer(db.Model):
+    """
+    Volunteer model that establishes a one-to-one relationship with User,
+    rather than inheritance which can cause issues with SQLAlchemy.
+    """
     __tablename__ = 'volunteer'
-    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     availability = db.Column(db.JSON)  # Store weekly availability
     skills = db.Column(db.String(200))  # Store volunteer skills
-    shifts = db.relationship('Shift', backref='volunteer', lazy=True)
+    
+    # Establish relationship with User
+    user = db.relationship('User', backref=db.backref('volunteer_profile', uselist=False))
+    
+    # Establish relationship with Shift
+    shifts = db.relationship('Shift', backref='volunteer_profile', lazy=True)
+    
+    @property
+    def name(self):
+        return self.user.name if self.user else None
+    
+    @property
+    def email(self):
+        return self.user.email if self.user else None
+    
+    @property
+    def phone(self):
+        return self.user.phone if self.user else None
 
 class Shift(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +58,9 @@ class Shift(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, completed
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Add relationship to the user who created the shift
+    creator = db.relationship('User', foreign_keys=[created_by], backref='created_shifts')
 
 class InventoryItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,4 +81,3 @@ class Notification(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, sent, failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sent_at = db.Column(db.DateTime)
-

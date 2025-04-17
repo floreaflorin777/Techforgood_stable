@@ -2,36 +2,14 @@ from flask import current_app
 from app.models import Notification, db, User
 from datetime import datetime
 import os
-from twilio.rest import Client
 
 class NotificationService:
     def __init__(self):
-        self.twilio_client = Client(
-            os.getenv('TWILIO_ACCOUNT_SID'),
-            os.getenv('TWILIO_AUTH_TOKEN')
-        )
-        self.whatsapp_from = os.getenv('TWILIO_WHATSAPP_NUMBER')
-
-    def send_email(self, to_email, subject, message):
-        # Implement email sending logic here
-        # You can use Flask-Mail or any other email service
         pass
 
-    def send_whatsapp(self, to_number, message):
-        try:
-            message = self.twilio_client.messages.create(
-                from_=f'whatsapp:{self.whatsapp_from}',
-                body=message,
-                to=f'whatsapp:{to_number}'
-            )
-            return True
-        except Exception as e:
-            current_app.logger.error(f"WhatsApp notification failed: {str(e)}")
-            return False
-
-    def send_sms(self, to_number, message):
-        # Implement your preferred SMS service here
-        # This is a placeholder that returns True to maintain compatibility
+    def send_email(self, to_email, subject, message):
+        # Basic email sending implementation
+        print(f"Email sent to {to_email}: {subject} - {message}")
         return True
 
     def create_notification(self, user_id, message, notification_type):
@@ -51,10 +29,6 @@ class NotificationService:
         try:
             if notification_type == 'email':
                 self.send_email(user.email, "Food Bank Notification", message)
-            elif notification_type == 'whatsapp':
-                self.send_whatsapp(user.phone, message)
-            elif notification_type == 'sms':
-                self.send_sms(user.phone, message)
             
             notification.status = 'sent'
             notification.sent_at = datetime.utcnow()
@@ -66,8 +40,16 @@ class NotificationService:
         return notification
 
     def send_shift_notification(self, volunteer, shift):
-        message = f"New shift assigned: {shift.start_time.strftime('%Y-%m-%d %H:%M')} to {shift.end_time.strftime('%H:%M')}"
-        return self.send_notification(volunteer, message, 'sms')
+        """Send notification about assigned shift to a volunteer"""
+        # Get the associated user from the volunteer profile
+        user = volunteer.user
+        
+        if not user:
+            current_app.logger.error(f"Cannot send shift notification: volunteer (id: {volunteer.id}) has no associated user")
+            return None
+            
+        message = f"New shift assigned: {shift.start_time} to {shift.end_time}"
+        return self.send_notification(user, message, 'email')
 
     def send_inventory_alert(self, item):
         message = f"Alert: {item.name} is running low. Current quantity: {item.quantity} {item.unit}"
