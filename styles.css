@@ -186,7 +186,7 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 90px;
+    min-height: 80px;
 }
 
 footer p {
@@ -208,102 +208,186 @@ footer .footer-links a:hover {
     text-decoration: underline;
 }
 
-.services img {
+services img {
     max-width: 30%;
     height: auto;
     display: block;
     margin: 0 auto;
 }
 
-.contact-container {
+.vb-dashboard {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 2rem;
+  }
+  
+  .vb-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .vb-header h2 {
+    font-size: 1.5rem;
+    color: #777;
+  }
+  
+  .vb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .vb-grid section {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+  }
+  
+  .vb-grid section h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: #222;
+  }
+  
+
+  .vb-tasks-overview .task {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 40px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .vb-badge {
     border-radius: 20px;
-    background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.contact-info {
-    flex: 1;
-    padding: 30px;
-    max-width: 450px;
-    background-color: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.contact-info h2 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: #333;
-}
-
-.contact-info p {
-    font-size: 1rem;
-    margin-bottom: 25px;
-    color: #555;
-}
-
-.contact-info form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.contact-info input {
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-.signup-btn {
-    background-color: #FFD700;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
     color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 15px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-}
-
-.signup-btn:hover {
-    background-color: #FFC107;
-}
-
-.social-login {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-.contact-image {
-    flex: 1;
-    text-align: center;
-    padding: 50px;
-}
-
-.contact-image h2 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
     font-weight: bold;
-    color: #333;
+    margin-left: 0.5rem;
+  }
+  
+
+  .vb-badge.start {
+    background-color: #4caf50;
+  }
+  
+  .vb-badge.ongoing {
+    background-color: #2196f3;
+  }
+  
+  .vb-badge.paused {
+    background-color: #ff9800;
+  }
+  
+  .vb-badge.urgent {
+    background-color: #f44336;
+  }
+  
+  .vb-badge.important {
+    background-color: #ff5722;
+  }
+  
+  .vb-badge.less-urgent {
+    background-color: #9e9e9e;
+  }
+
+#calendar {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  overflow: visible; 
 }
 
-.contact-image p {
+
+.fc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fc-toolbar-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.fc-button {
+  background-color: transparent;
+  color: #333;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.fc-button:hover {
+  transform: scale(1.2);
+}
+
+
+.fc-daygrid {
+  overflow: visible !important; 
+}
+
+.fc-scroller {
+  overflow: visible !important; 
+}
+
+.fc-daygrid-day {
+  height: auto; 
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.fc-daygrid-day-number {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  line-height: normal;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.fc-daygrid-day:hover .fc-daygrid-day-number {
+  background-color: #FFD700; 
+  color: inherit;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background-color: #cddc39;
+  color: #fff;
+  font-weight: bold;
+}
+
+.fc-daygrid-event {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #calendar {
+    padding: 10px;
+  }
+
+  .fc-toolbar-title {
     font-size: 1rem;
-    margin-bottom: 25px;
-    color: #555;
-}
+  }
 
-.contact-image img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 10px;
+  .fc-daygrid-day-number {
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+  }
 }
