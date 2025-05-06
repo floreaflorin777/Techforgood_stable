@@ -9,6 +9,8 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from flask_migrate import Migrate
+from flask_mail import Mail
 
 # Load environment variables
 load_dotenv()
@@ -17,6 +19,7 @@ load_dotenv()
 db = SQLAlchemy()
 jwt = JWTManager()
 limiter = Limiter(key_func=get_remote_address)
+mail = Mail()
 
 def create_app(config_name='development'):
     app = Flask(__name__)
@@ -26,7 +29,6 @@ def create_app(config_name='development'):
     app.config.from_object(config[config_name])
     
     # Setup logging
-    # Create logs directory in a safe way
     try:
         if not os.path.exists('logs'):
             os.makedirs('logs')
@@ -34,7 +36,6 @@ def create_app(config_name='development'):
     except Exception as e:
         print(f"Warning: Could not create logs directory: {str(e)}")
         
-    # Configure file handler with error handling
     try:
         log_path = f'logs/foodbank_{datetime.now().strftime("%Y%m%d")}.log'
         file_handler = RotatingFileHandler(
@@ -46,6 +47,7 @@ def create_app(config_name='development'):
     except Exception as e:
         print(f"Warning: Could not configure file logging: {str(e)}")
         file_handler = logging.NullHandler()
+        
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
@@ -66,17 +68,21 @@ def create_app(config_name='development'):
     CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS']}})
     limiter.init_app(app)
     jwt.init_app(app)
+    mail.init_app(app)
     
     # Setup database connection
     from app.database import get_database_url
     app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid overhead
     db.init_app(app)
     
     # Register blueprints
     from app.routes import main as main_blueprint
     from app.auth import auth as auth_blueprint
+    from app.notify import notify as notify_blueprint  # Ensure notify blueprint is added
     
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    app.register_blueprint(notify_blueprint, url_prefix='/notify')  # Register the notification routes
     
     return app
