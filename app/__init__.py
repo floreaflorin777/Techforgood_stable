@@ -69,7 +69,7 @@ def create_app(config_name='development'):
     
     # Setup database connection
     from app.database import get_database_url
-    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url(app)
     db.init_app(app)
     
     # Register blueprints
