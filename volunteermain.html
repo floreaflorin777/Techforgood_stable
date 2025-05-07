@@ -4,13 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Food Bank Supporter - Contact</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="images/logoinvisiblebg.png" type="image/png">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" type="image/png">
   
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
   <style>
-    
+    .vb-dashboard {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .vb-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .vb-header h1 {
+      color: #333;
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    .vb-header h2 {
+      color: #666;
+      margin: 5px 0 0 0;
+      font-size: 1.2rem;
+    }
+
+    .vb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .vb-calendar, .vb-volunteer-schedule, .vb-employee-directory, .vb-tasks-overview {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .vb-calendar h3, .vb-volunteer-schedule h3, .vb-employee-directory h3, .vb-tasks-overview h3 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .vb-calendar h3 i, .vb-volunteer-schedule h3 i, .vb-employee-directory h3 i, .vb-tasks-overview h3 i {
+      color: #FFD700;
+    }
+
     #calendar {
       max-width: 900px;
       margin: 20px auto;
@@ -20,17 +76,20 @@
       border-radius: 12px;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
+
     .fc-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
+
     .fc-toolbar-title {
       font-size: 1.8rem;
       font-weight: bold;
       color: #FFD700;
     }
+
     .fc-button {
       background-color: #4caf50;
       color: #fff;
@@ -40,9 +99,11 @@
       font-size: 0.8rem; 
       cursor: pointer;
     }
+
     .fc-button:hover {
       background-color: #45a049;
     }
+
     .fc-daygrid-event {
       background-color: #ff9800 !important;
       color: #FFD700 !important;
@@ -51,11 +112,663 @@
       padding: 2px 4px;
       font-size: 0.85rem;
     }
+
     .fc-daygrid-day:hover {
       background-color: #f1f8e9;
     }
+
     .fc-day-today {
       background-color: #e8f5e9 !important;
+    }
+
+    .task {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.3s;
+    }
+
+    .task:hover {
+      background-color: #f9f9f9;
+    }
+
+    .vb-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      margin-left: 10px;
+    }
+
+    .vb-badge.start {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .vb-badge.ongoing {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    .vb-badge.urgent {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .vb-badge.important {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    /* New styles for additional features */
+    .notification-bell {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notification-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #f44336;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.7em;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .action-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .action-button:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+    }
+
+    .action-button i {
+      color: #FFD700;
+      font-size: 1.2em;
+    }
+
+    .progress-section {
+      margin-top: 20px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #FFD700;
+      transition: width 0.3s ease;
+    }
+
+    .achievement-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .achievement-icon {
+      width: 40px;
+      height: 40px;
+      background: #FFD700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .upcoming-events {
+      margin-top: 20px;
+    }
+
+    .event-card {
+      padding: 15px;
+      border-left: 4px solid #FFD700;
+      background: #fff;
+      margin-bottom: 10px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .event-time {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    /* Enhanced notification styles */
+    .notification-bell {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notification-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 300px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      margin-top: 10px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .notification-dropdown.active {
+      display: block;
+    }
+
+    .notification-header {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notification-header h4 {
+      margin: 0;
+      color: #333;
+    }
+
+    .notification-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .notification-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .notification-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .notification-item.unread {
+      background-color: #f0f7ff;
+    }
+
+    .notification-item .notification-title {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .notification-item .notification-time {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .notification-item .notification-message {
+      color: #555;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .mark-all-read {
+      color: #FFD700;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+
+    .mark-all-read:hover {
+      text-decoration: underline;
+    }
+
+    /* Staff Directory Styles */
+    .staff-list {
+      display: grid;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .staff-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .staff-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .staff-avatar {
+      width: 50px;
+      height: 50px;
+      background: #f8f9fa;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFD700;
+      font-size: 1.8em;
+    }
+
+    .staff-info {
+      flex-grow: 1;
+    }
+
+    .staff-info h4 {
+      margin: 0;
+      color: #333;
+      font-size: 1.1em;
+    }
+
+    .staff-role {
+      color: #666;
+      margin: 5px 0;
+      font-size: 0.9em;
+    }
+
+    .staff-contact {
+      color: #666;
+      font-size: 0.9em;
+      margin: 5px 0 0 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .staff-contact i {
+      color: #FFD700;
+    }
+
+    .staff-availability {
+      margin-top: 8px;
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    .availability-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.9em;
+    }
+
+    .status-available {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-busy {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+
+    .status-offline {
+      background-color: #f5f5f5;
+      color: #757575;
+    }
+
+    .office-hours {
+      margin-top: 5px;
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    .office-hours i {
+      color: #FFD700;
+      margin-right: 5px;
+    }
+
+    /* Messaging System Styles */
+    .messaging-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .chat-container {
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 15px;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+    }
+
+    .message.sent {
+      margin-left: auto;
+    }
+
+    .message.received {
+      margin-right: auto;
+    }
+
+    .message-content {
+      padding: 10px 15px;
+      border-radius: 15px;
+      position: relative;
+    }
+
+    .message.sent .message-content {
+      background: #FFD700;
+      color: #333;
+      border-bottom-right-radius: 5px;
+    }
+
+    .message.received .message-content {
+      background: #e9ecef;
+      color: #333;
+      border-bottom-left-radius: 5px;
+    }
+
+    .message-sender {
+      font-size: 0.8em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .message-time {
+      font-size: 0.7em;
+      color: #999;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    .chat-input input:focus {
+      border-color: #FFD700;
+    }
+
+    .send-button {
+      background: #FFD700;
+      color: #333;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .send-button:hover {
+      background: #e6c200;
+    }
+
+    .chat-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .chat-tab {
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      background: #f8f9fa;
+      transition: all 0.3s;
+    }
+
+    .chat-tab.active {
+      background: #FFD700;
+      color: #333;
+    }
+
+    /* Floating Chat Widget Styles */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .chat-button {
+      width: 60px;
+      height: 60px;
+      background: #FFD700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .chat-button:hover {
+      transform: scale(1.1);
+    }
+
+    .chat-button i {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .chat-window {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 350px;
+      height: 500px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-window.active {
+      display: flex;
+    }
+
+    .chat-header {
+      padding: 15px;
+      background: #FFD700;
+      color: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header h4 {
+      margin: 0;
+      font-size: 1.1em;
+    }
+
+    .minimize-button {
+      background: none;
+      border: none;
+      color: #333;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .chat-tabs {
+      display: flex;
+      gap: 5px;
+      padding: 10px;
+      background: #f8f9fa;
+    }
+
+    .chat-tab {
+      padding: 5px 10px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 0.9em;
+      background: #fff;
+      transition: all 0.3s;
+    }
+
+    .chat-tab.active {
+      background: #FFD700;
+      color: #333;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+    }
+
+    .message.sent {
+      margin-left: auto;
+    }
+
+    .message.received {
+      margin-right: auto;
+    }
+
+    .message-content {
+      padding: 10px 15px;
+      border-radius: 15px;
+      position: relative;
+    }
+
+    .message.sent .message-content {
+      background: #FFD700;
+      color: #333;
+      border-bottom-right-radius: 5px;
+    }
+
+    .message.received .message-content {
+      background: #e9ecef;
+      color: #333;
+      border-bottom-left-radius: 5px;
+    }
+
+    .message-sender {
+      font-size: 0.8em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .message-time {
+      font-size: 0.7em;
+      color: #999;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .chat-input {
+      padding: 15px;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    .chat-input input:focus {
+      border-color: #FFD700;
+    }
+
+    .send-button {
+      background: #FFD700;
+      color: #333;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .send-button:hover {
+      background: #e6c200;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #f44336;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
     }
   </style>
 </head>
@@ -63,32 +776,94 @@
 
   <div class="vb-dashboard">
     <header class="vb-header">
-      <h1>Food Bank</h1>
-      <h2>Tech for good</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div>
+          <h1>Food Bank</h1>
+          <h2>Tech for good</h2>
+        </div>
+        <div class="notification-bell">
+          <i class="fas fa-bell fa-lg"></i>
+          <span class="notification-count">3</span>
+          <div class="notification-dropdown">
+            <div class="notification-header">
+              <h4>Notifications</h4>
+              <span class="mark-all-read">Mark all as read</span>
+            </div>
+            <div class="notification-list">
+              <div class="notification-item unread">
+                <div class="notification-title">New Shift Available</div>
+                <div class="notification-time">2 hours ago</div>
+                <div class="notification-message">A new shift is available for tomorrow's food distribution.</div>
+              </div>
+              <div class="notification-item unread">
+                <div class="notification-title">Training Reminder</div>
+                <div class="notification-time">5 hours ago</div>
+                <div class="notification-message">Don't forget about the volunteer training session next Monday.</div>
+              </div>
+              <div class="notification-item unread">
+                <div class="notification-title">Achievement Unlocked</div>
+                <div class="notification-time">1 day ago</div>
+                <div class="notification-message">Congratulations! You've reached 30 volunteer hours.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <div class="vb-grid">
       
+      <!-- Quick Actions Section -->
+      <section class="vb-card">
+        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div class="quick-actions">
+          <div class="action-button">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Sign Up for Shift</span>
+          </div>
+          <div class="action-button">
+            <i class="fas fa-file-alt"></i>
+            <span>Report Hours</span>
+          </div>
+          <div class="action-button" onclick="window.location.href='contact.html'">
+            <i class="fas fa-question-circle"></i>
+            <span>Get Help</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Existing Calendar Section -->
       <section class="vb-calendar">
-        <h3>Calendar</h3>
+        <h3><i class="fas fa-calendar"></i> Calendar</h3>
         <div id="calendar"></div>
       </section>
 
-      <!-- Volunteer Schedule -->
-      <section class="vb-volunteer-schedule">
-        <h3>Volunteer Schedules</h3>
-        <p>[Volunteer schedule placeholder]</p>
+      <!-- Volunteer Progress Section -->
+      <section class="vb-card">
+        <h3><i class="fas fa-chart-line"></i> My Progress</h3>
+        <div class="progress-section">
+          <div>
+            <h4>Hours Goal: 40 hours</h4>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 65%;"></div>
+            </div>
+            <p>32.5 hours completed</p>
+          </div>
+          <div class="achievement-card">
+            <div class="achievement-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div>
+              <h4>Volunteer of the Month</h4>
+              <p>Keep up the great work!</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <!-- Employee Directory -->
-      <section class="vb-employee-directory">
-        <h3>Employee Directory</h3>
-        <p>[Employee cards placeholder]</p>
-      </section>
-
-      <!-- Tasks Overview -->
+      <!-- Existing Tasks Section -->
       <section class="vb-tasks-overview">
-        <h3>Tasks Overview</h3>
+        <h3><i class="fas fa-tasks"></i> Tasks Overview</h3>
         <div class="task">
           <span>Distribution Planning</span>
           <span class="vb-badge start">Start</span>
@@ -105,6 +880,137 @@
           <span class="vb-badge urgent">Urgent</span>
         </div>
       </section>
+
+      <!-- Upcoming Events Section -->
+      <section class="vb-card">
+        <h3><i class="fas fa-calendar-day"></i> Upcoming Events</h3>
+        <div class="upcoming-events">
+          <div class="event-card">
+            <h4>Food Distribution Day</h4>
+            <p class="event-time">Tomorrow, 9:00 AM - 2:00 PM</p>
+          </div>
+          <div class="event-card">
+            <h4>Volunteer Training</h4>
+            <p class="event-time">Next Monday, 6:00 PM - 8:00 PM</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Employee Directory -->
+      <section class="vb-employee-directory">
+        <h3><i class="fas fa-users"></i> Staff Directory</h3>
+        <div class="staff-list">
+          <div class="staff-card">
+            <div class="staff-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="staff-info">
+              <h4>Sarah Johnson</h4>
+              <p class="staff-role">Volunteer Coordinator</p>
+              <p class="staff-contact">
+                <i class="fas fa-envelope"></i> sarah@foodbank.org
+              </p>
+              <div class="staff-availability">
+                <span class="availability-status status-available">
+                  <i class="fas fa-circle"></i> Available
+                </span>
+              </div>
+              <div class="office-hours">
+                <i class="fas fa-clock"></i> Mon-Fri: 9:00 AM - 5:00 PM
+              </div>
+            </div>
+          </div>
+          <div class="staff-card">
+            <div class="staff-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="staff-info">
+              <h4>Michael Chen</h4>
+              <p class="staff-role">Operations Manager</p>
+              <p class="staff-contact">
+                <i class="fas fa-envelope"></i> michael@foodbank.org
+              </p>
+              <div class="staff-availability">
+                <span class="availability-status status-busy">
+                  <i class="fas fa-circle"></i> In a Meeting
+                </span>
+              </div>
+              <div class="office-hours">
+                <i class="fas fa-clock"></i> Mon-Fri: 8:00 AM - 4:00 PM
+              </div>
+            </div>
+          </div>
+          <div class="staff-card">
+            <div class="staff-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="staff-info">
+              <h4>Emma Rodriguez</h4>
+              <p class="staff-role">Community Outreach</p>
+              <p class="staff-contact">
+                <i class="fas fa-envelope"></i> emma@foodbank.org
+              </p>
+              <div class="staff-availability">
+                <span class="availability-status status-offline">
+                  <i class="fas fa-circle"></i> Offline
+                </span>
+              </div>
+              <div class="office-hours">
+                <i class="fas fa-clock"></i> Tue-Sat: 10:00 AM - 6:00 PM
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Floating Chat Widget -->
+      <div class="chat-widget">
+        <div class="chat-button">
+          <i class="fas fa-comments"></i>
+          <span class="notification-badge">2</span>
+        </div>
+        <div class="chat-window">
+          <div class="chat-header">
+            <h4>Messages</h4>
+            <button class="minimize-button">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+          <div class="chat-tabs">
+            <div class="chat-tab active">Staff Chat</div>
+            <div class="chat-tab">Volunteer Chat</div>
+          </div>
+          <div class="chat-messages">
+            <div class="message received">
+              <div class="message-sender">Sarah Johnson</div>
+              <div class="message-content">
+                Hello! How can I help you today?
+              </div>
+              <div class="message-time">10:30 AM</div>
+            </div>
+            <div class="message sent">
+              <div class="message-sender">You</div>
+              <div class="message-content">
+                Hi Sarah, I have a question about tomorrow's shift.
+              </div>
+              <div class="message-time">10:31 AM</div>
+            </div>
+            <div class="message received">
+              <div class="message-sender">Sarah Johnson</div>
+              <div class="message-content">
+                Sure, what would you like to know?
+              </div>
+              <div class="message-time">10:32 AM</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <input type="text" placeholder="Type your message...">
+            <button class="send-button">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -131,6 +1037,116 @@
       });
 
       calendar.render();
+    });
+
+    // Add new functionality for quick actions
+    document.querySelectorAll('.action-button').forEach(button => {
+      button.addEventListener('click', function() {
+        const action = this.querySelector('span').textContent;
+        if (action === 'Get Help') {
+          window.location.href = 'contact.html';
+        } else {
+          // Add your action handling logic here
+          console.log(`Action clicked: ${action}`);
+        }
+      });
+    });
+
+    // Notification functionality
+    const notificationBell = document.querySelector('.notification-bell');
+    const notificationDropdown = document.querySelector('.notification-dropdown');
+    const markAllRead = document.querySelector('.mark-all-read');
+    const notificationCount = document.querySelector('.notification-count');
+    const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+
+    // Toggle notification dropdown
+    notificationBell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notificationDropdown.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!notificationBell.contains(e.target)) {
+        notificationDropdown.classList.remove('active');
+      }
+    });
+
+    // Mark all as read functionality
+    markAllRead.addEventListener('click', () => {
+      unreadNotifications.forEach(notification => {
+        notification.classList.remove('unread');
+      });
+      notificationCount.textContent = '0';
+    });
+
+    // Individual notification click handling
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (item.classList.contains('unread')) {
+          item.classList.remove('unread');
+          const currentCount = parseInt(notificationCount.textContent);
+          notificationCount.textContent = currentCount - 1;
+        }
+      });
+    });
+
+    // Chat widget functionality
+    const chatButton = document.querySelector('.chat-button');
+    const chatWindow = document.querySelector('.chat-window');
+    const minimizeButton = document.querySelector('.minimize-button');
+    const chatInput = document.querySelector('.chat-input input');
+    const sendButton = document.querySelector('.send-button');
+    const chatMessages = document.querySelector('.chat-messages');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const notificationBadge = document.querySelector('.notification-badge');
+
+    // Toggle chat window
+    chatButton.addEventListener('click', () => {
+      chatWindow.classList.toggle('active');
+      if (chatWindow.classList.contains('active')) {
+        notificationBadge.style.display = 'none';
+      }
+    });
+
+    // Minimize chat window
+    minimizeButton.addEventListener('click', () => {
+      chatWindow.classList.remove('active');
+    });
+
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (message) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const messageHTML = `
+          <div class="message sent">
+            <div class="message-sender">You</div>
+            <div class="message-content">
+              ${message}
+            </div>
+            <div class="message-time">${time}</div>
+          </div>
+        `;
+        chatMessages.insertAdjacentHTML('beforeend', messageHTML);
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Chat tabs functionality
+    chatTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        chatTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // Here you would typically load different chat content
+      });
     });
   </script>
 </body>

@@ -8,12 +8,6 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
     
-    # SSH Tunnel Configuration (for local development)
-    SSH_HOST = os.getenv('SSH_HOST', 'ssh.eu.pythonanywhere.com')
-    SSH_PORT = int(os.getenv('SSH_PORT', 22))
-    SSH_USERNAME = os.getenv('SSH_USERNAME')
-    SSH_PASSWORD = os.getenv('SSH_PASSWORD')
-    
     # Database Configuration
     # Default values for PythonAnywhere
     is_pythonanywhere = 'PYTHONANYWHERE_DOMAIN' in os.environ
@@ -62,3 +56,14 @@ config = {
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
+class Config:
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@hostname/dbname'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Email configuration for Flask-Mail
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'your_email@gmail.com'
+    MAIL_PASSWORD = 'your_app_password'  # Use an App Password for Gmail
+    MAIL_DEFAULT_SENDER = 'your_email@gmail.com'
