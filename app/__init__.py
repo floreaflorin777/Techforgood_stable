@@ -72,6 +72,7 @@ def create_app(config_name='development'):
     
     # Setup database connection
     from app.database import get_database_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url(app)
     app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid overhead
     db.init_app(app)

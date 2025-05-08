@@ -24,21 +24,20 @@ def require_role(role):
 # Home route
 @main.route('/')
 def index():
-    return send_from_directory(os.path.join(os.getcwd()), 'index.html')
-
-@main.route('/<path:filename>')
-def serve_static(filename):
-    return send_from_directory(os.path.join(os.getcwd()), filename)
+    return render_template('index.html')
 
 @main.route('/admin/dashboard')
 @require_role('admin')
 def admin_dashboard():
-    #return "Admin Dashboard - Coming Soon"
     return send_from_directory(os.path.join(os.getcwd()), 'admin.html')
 
 @main.route('/volunteer/dashboard')
 def volunteer_dashboard():
-    return "Volunteer Dashboard - Coming Soon"
+    return render_template('volunteer_dashboard.html')
+
+@main.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 # Import models and services after Blueprint creation to avoid circular imports
 from app.models import db, User, Volunteer, InventoryItem, Shift
