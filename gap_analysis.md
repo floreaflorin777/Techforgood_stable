@@ -42,7 +42,7 @@ This document compares the existing implementation with the revised MVP plan out
 
 | Feature | Status | Notes |
 | ------- | ------ | ----- |
-| Shift Editing and Deletion | 🟠 Partial | Deletion of volunteers is implemented. shift editing/deletion route is implemented ('/api/shifts/<int:shift_id>', methods=['PUT']) and ('/api/shifts/<int:shift_id>', methods=['DELETE'])
+| Shift Editing and Deletion | ✅ Completed | Deletion of volunteers is implemented. shift editing/deletion route is implemented ('/api/shifts/<int:shift_id>', methods=['PUT']) and ('/api/shifts/<int:shift_id>', methods=['DELETE'])
 | Manual Item Management | 🟠 Partial | Adding and updating inventory items is implemented, but not deletion. |
 
 ## Week 3: Enhanced User Interaction and Automation
