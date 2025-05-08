@@ -8,14 +8,28 @@ import os
 
 main = Blueprint('main', __name__)
 
+# Authentication middleware
+def require_role(role):
+    def decorator(f):
+        @jwt_required()
+        def wrapper(*args, **kwargs):
+            current_user = get_jwt_identity()
+            if current_user['role'] != role:
+                return jsonify({'error': 'Forbidden', 'message': f'Requires {role} role'}), 403
+            return f(*args, **kwargs)
+        wrapper.__name__ = f.__name__  # Preserve the original function name
+        return wrapper
+    return decorator
+
 # Home route
 @main.route('/')
 def index():
     return render_template('index.html')
 
 @main.route('/admin/dashboard')
+@require_role('admin')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    return send_from_directory(os.path.join(os.getcwd()), 'admin.html')
 
 @main.route('/volunteer/dashboard')
 def volunteer_dashboard():
@@ -71,18 +85,6 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'error': 'Internal Server Error', 'message': str(error)}), 500
 
-# Authentication middleware
-def require_role(role):
-    def decorator(f):
-        @jwt_required()
-        def wrapper(*args, **kwargs):
-            current_user = get_jwt_identity()
-            if current_user['role'] != role:
-                return jsonify({'error': 'Forbidden', 'message': f'Requires {role} role'}), 403
-            return f(*args, **kwargs)
-        wrapper.__name__ = f.__name__  # Preserve the original function name
-        return wrapper
-    return decorator
 
 # --------------------
 # Volunteer Routes
@@ -131,7 +133,6 @@ def add_volunteer():
         if not phone_valid:
             return jsonify({'error': phone_error}), 400
 
-    # First create a user
     user = User(
         name=data['name'],
         email=data['email'],
@@ -140,17 +141,14 @@ def add_volunteer():
     )
     user.set_password(data.get('password', 'default_password'))
     
-    # Then create the volunteer profile linked to the user
     volunteer = Volunteer(
         availability=json.dumps(data.get('availability', {})),
         skills=data.get('skills')
     )
     
-    # Add both to session but commit after setting up the relationship
     db.session.add(user)
-    db.session.flush()  # This assigns an ID to the user
+    db.session.flush()  
     
-    # Link the volunteer to the user
     volunteer.user_id = user.id
     db.session.add(volunteer)
     db.session.commit()
@@ -162,25 +160,19 @@ def add_volunteer():
         'user_id': user.id
     }), 201
 
-# Delete a volunteer
 @main.route('/api/volunteers/<int:volunteer_id>', methods=['DELETE'])
 @require_role('admin')
 def delete_volunteer(volunteer_id):
     volunteer = Volunteer.query.get_or_404(volunteer_id)
     
-    # Get the associated user
     user = User.query.get(volunteer.user_id)
     
-    # Delete volunteer profile first
     db.session.delete(volunteer)
     
     if user:
-        # Only delete the user if they exist and have role=volunteer
-        # This prevents accidental deletion of admin or manager users
         if user.role == 'volunteer':
             db.session.delete(user)
         else:
-            # If the user has a different role, just clear the volunteer flag
             current_app.logger.info(f"User {user.email} has role {user.role}, not deleting user record")
     
     db.session.commit()
@@ -228,6 +220,21 @@ def create_shift():
     except Exception as e:
         current_app.logger.error(f'Error creating shift: {str(e)}')
         return jsonify({'error': 'Invalid shift data', 'message': str(e)}), 400
+    
+@main.route('/api/shifts/recent', methods=['GET'])
+@require_role('admin')
+@jwt_required()
+def recent_shifts():
+    recent = Shift.query.order_by(Shift.start_time.desc()).limit(10).all()
+    result = []
+    for shift in recent:
+        volunteer_name = getattr(getattr(shift, 'volunteer', None), 'name', 'Unknown')
+        result.append({
+            "volunteer_name": volunteer_name,
+            "start_time": shift.start_time.isoformat() if shift.start_time else "",
+            "status": shift.status
+        })
+    return jsonify({"shifts": result})
 
 # Edit a shift
 @main.route('/api/shifts/<int:shift_id>', methods=['PUT'])
@@ -330,17 +337,34 @@ def update_inventory_item(item_id):
     current_app.logger.info(f'Inventory item updated: {item.name}')
     return jsonify({'message': 'Inventory item updated successfully'}), 200
 
+@main.route('/api/analytics/inventory', methods=['GET'])
+@require_role('admin')
+@jwt_required()
+def inventory_analytics():
+    total_items = InventoryItem.query.count()
+    # Example: low stock = quantity < 10
+    low_stock_items = InventoryItem.query.filter(InventoryItem.quantity < 10).all()
+    return jsonify({
+        "total_items": total_items,
+        "low_stock_items": len(low_stock_items),
+        "low_stock_items_list": [
+            {
+                "name": item.name,
+                "quantity": item.quantity,
+                "unit": item.unit,
+                "min_quantity": item.min_quantity
+            } for item in low_stock_items
+        ]
+    }), 200
+
 # --------------------
 # Analytics Routes
 # --------------------
 
 @main.route('/api/analytics/volunteers', methods=['GET'])
 @jwt_required()
-def volunteer_analytics():
-    # Total volunteers
+def volunteers_analytics():
     total_volunteers = Volunteer.query.count()
-    
-    # Active volunteers (where associated user is active)
     active_volunteers = Volunteer.query.join(User, Volunteer.user_id == User.id).filter(User.is_active == True).count()
     
     # Shifts this month
@@ -373,4 +397,14 @@ def inventory_analytics():
         'total_items': total_items,
         'low_stock_items': low_stock_items,
         'expiring_soon': expiring_soon
+    }), 200
+
+@main.route('/api/analytics/volunteers', methods=['GET'])
+@jwt_required()
+def volunteers_analytics():
+    total_volunteers = Volunteer.query.count()
+    active_volunteers = Volunteer.query.filter_by(status='active').count()
+    return jsonify({
+        "total_volunteers": total_volunteers,
+        "active_volunteers": active_volunteers
     }), 200
