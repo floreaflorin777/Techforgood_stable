@@ -228,6 +228,52 @@ def create_shift():
     except Exception as e:
         current_app.logger.error(f'Error creating shift: {str(e)}')
         return jsonify({'error': 'Invalid shift data', 'message': str(e)}), 400
+    
+# Edit a shift
+@main.route('/api/shifts/<int:shift_id>', methods=['PUT'])
+@require_role('admin')
+def edit_shift(shift_id):
+    data = request.json
+    try:
+        times_valid, time_error = validate_shift_times(data['start_time'], data['end_time'])
+        if not times_valid:
+            return jsonify({'error': time_error}), 400
+
+        shift = Shift.query.get(shift_id)
+        if not shift:
+            return jsonify({'error': 'Shift not found'}), 404
+
+        shift.start_time = datetime.fromisoformat(data['start_time'])
+        shift.end_time = datetime.fromisoformat(data['end_time'])
+        shift.volunteer_id = data.get('volunteer_id', shift.volunteer_id)
+
+        db.session.commit()
+        
+        current_app.logger.info(f'Shift updated: {shift_id}')
+        return jsonify({'message': 'Shift updated successfully'}), 200
+    except Exception as e:
+        current_app.logger.error(f'Error updating shift: {str(e)}')
+        return jsonify({'error': 'Failed to update shift', 'message': str(e)}), 400
+
+# Delete a shift
+@main.route('/api/shifts/<int:shift_id>', methods=['DELETE'])
+@require_role('admin')
+def delete_shift(shift_id):
+    try:
+        shift = Shift.query.get(shift_id)
+        if not shift:
+            return jsonify({'error': 'Shift not found'}), 404
+
+        db.session.delete(shift)
+        db.session.commit()
+
+        current_app.logger.info(f'Shift deleted: {shift_id}')
+        return jsonify({'message': 'Shift deleted successfully'}), 200
+    except Exception as e:
+        current_app.logger.error(f'Error deleting shift: {str(e)}')
+        return jsonify({'error': 'Failed to delete shift', 'message': str(e)}), 400
+
+
 
 # --------------------
 # Inventory Routes
