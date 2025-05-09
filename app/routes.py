@@ -331,6 +331,16 @@ def update_inventory_item(item_id):
     current_app.logger.info(f'Inventory item updated: {item.name}')
     return jsonify({'message': 'Inventory item updated successfully'}), 200
 
+# Delete an inventory item
+@main.route('/api/inventory/<int:item_id>', methods=['DELETE'])
+@require_role('manager')
+def delete_inventory_item(item_id):
+    item = InventoryItem.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    current_app.logger.info(f'Inventory item deleted: {item.name}')
+    return jsonify({'message': 'Inventory item deleted successfully'}), 200
+
 # --------------------
 # Analytics Routes
 # --------------------
