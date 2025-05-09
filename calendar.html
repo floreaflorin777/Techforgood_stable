@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Bank - Calendar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" type="image/png">
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .calendar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-align: left;
+        }
+
+        .action-button:hover {
+            background: #e9ecef;
+        }
+
+        .action-button i {
+            color: #FFD700;
+            font-size: 1.2em;
+        }
+
+        .calendar-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-btn.primary {
+            background: #4caf50;
+            color: white;
+        }
+
+        .calendar-btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .calendar-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .filter-checkbox input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .calendar-wrapper {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #calendar {
+            height: 800px;
+        }
+
+        /* Custom event colors */
+        .fc-event.shift {
+            background-color: #4caf50 !important;
+            border-color: #45a049 !important;
+        }
+
+        .fc-event.training {
+            background-color: #2196f3 !important;
+            border-color: #1e88e5 !important;
+        }
+
+        .fc-event.meeting {
+            background-color: #ff9800 !important;
+            border-color: #f57c00 !important;
+        }
+
+        .fc-event.distribution {
+            background-color: #9c27b0 !important;
+            border-color: #8e24aa !important;
+        }
+
+        .fc-event.other {
+            background-color: #607d8b !important;
+            border-color: #546e7a !important;
+        }
+
+        /* Custom event colors as dots for each type */
+        .fc-daygrid-event-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        .fc-event.start .fc-daygrid-event-dot {
+            background: #4caf50;
+        }
+        .fc-event.ongoing .fc-daygrid-event-dot {
+            background: #2196f3;
+        }
+        .fc-event.urgent .fc-daygrid-event-dot {
+            background: #f44336;
+        }
+        .fc-event.important .fc-daygrid-event-dot {
+            background: #ff9800;
+        }
+        /* Hide the add event button if any */
+        .calendar-btn.secondary[onclick*="addNewEvent"] { display: none !important; }
+
+        /* Event modal styles */
+        .event-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .event-modal.active {
+            display: flex;
+        }
+
+        .event-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .event-details {
+            margin-top: 20px;
+        }
+
+        .event-detail-item {
+            margin-bottom: 15px;
+        }
+
+        .event-detail-item label {
+            font-weight: bold;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .event-detail-item p {
+            margin: 0;
+            color: #333;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .event-action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .event-action-btn.edit {
+            background: #2196f3;
+            color: white;
+        }
+
+        .event-action-btn.delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .event-action-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h1>Food Bank Calendar</h1>
+            <div class="calendar-actions">
+                <div class="action-button" onclick="window.location.href='shifts.html'">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Sign Up for Shift</span>
+                </div>
+                <div class="action-button" onclick="window.location.href='report_hours.html'">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Report Hours</span>
+                </div>
+                <button class="calendar-btn primary" onclick="window.location.href='volunteermain.html'">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+        </div>
+
+        <div class="calendar-filters">
+            <div class="filter-group">
+                <label>Event Types:</label>
+                <div class="filter-checkbox">
+                    <input type="checkbox" id="filter-shifts" checked>
+                    <label for="filter-shifts">Shifts</label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" id="filter-trainings" checked>
+                    <label for="filter-trainings">Trainings</label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" id="filter-meetings" checked>
+                    <label for="filter-meetings">Meetings</label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" id="filter-distributions" checked>
+                    <label for="filter-distributions">Distributions</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-wrapper">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="event-modal" id="eventModal">
+        <div class="event-modal-content">
+            <span class="close-modal" onclick="closeEventModal()">&times;</span>
+            <h2 id="eventTitle"></h2>
+            <div class="event-details">
+                <div class="event-detail-item">
+                    <label>Type</label>
+                    <p id="eventType"></p>
+                </div>
+                <div class="event-detail-item">
+                    <label>Date & Time</label>
+                    <p id="eventDateTime"></p>
+                </div>
+                <div class="event-detail-item">
+                    <label>Location</label>
+                    <p id="eventLocation"></p>
+                </div>
+                <div class="event-detail-item">
+                    <label>Description</label>
+                    <p id="eventDescription"></p>
+                </div>
+                <div class="event-detail-item">
+                    <label>Volunteers Needed</label>
+                    <p id="eventVolunteers"></p>
+                </div>
+            </div>
+            <div class="event-actions">
+                <button class="event-action-btn edit" onclick="editEvent()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="event-action-btn delete" onclick="deleteEvent()">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+                },
+                events: [
+                    {
+                        title: 'Morning Food Distribution',
+                        start: '2024-03-20T09:00:00',
+                        end: '2024-03-20T13:00:00',
+                        className: 'important',
+                        extendedProps: {
+                            type: 'Distribution',
+                            location: 'Main Food Bank',
+                            description: 'Morning food distribution for local families',
+                            volunteers: '5 volunteers needed'
+                        }
+                    },
+                    {
+                        title: 'Volunteer Training',
+                        start: '2024-03-22T14:00:00',
+                        end: '2024-03-22T16:00:00',
+                        className: 'ongoing',
+                        extendedProps: {
+                            type: 'Training',
+                            location: 'Training Room',
+                            description: 'New volunteer orientation and training session',
+                            volunteers: 'No volunteers needed'
+                        }
+                    },
+                    {
+                        title: 'Staff Meeting',
+                        start: '2024-03-25T10:00:00',
+                        end: '2024-03-25T11:00:00',
+                        className: 'urgent',
+                        extendedProps: {
+                            type: 'Meeting',
+                            location: 'Conference Room',
+                            description: 'Weekly staff meeting',
+                            volunteers: 'No volunteers needed'
+                        }
+                    },
+                    {
+                        title: 'Food Distribution Day',
+                        start: '2024-03-21T09:00:00',
+                        end: '2024-03-21T14:00:00',
+                        className: 'important',
+                        extendedProps: {
+                            type: 'Distribution',
+                            location: 'Main Food Bank',
+                            description: 'Food Distribution Day',
+                            volunteers: 'All volunteers welcome'
+                        }
+                    },
+                    {
+                        title: 'Volunteer Training',
+                        start: '2024-03-25T18:00:00',
+                        end: '2024-03-25T20:00:00',
+                        className: 'ongoing',
+                        extendedProps: {
+                            type: 'Training',
+                            location: 'Training Room',
+                            description: 'Volunteer Training',
+                            volunteers: 'All volunteers welcome'
+                        }
+                    }
+                ],
+                eventClick: function(info) {
+                    showEventDetails(info.event);
+                },
+                eventDidMount: function(info) {
+                    // Add tooltips
+                    info.el.title = info.event.extendedProps.description;
+                }
+            });
+
+            calendar.render();
+
+            // Filter functionality
+            document.querySelectorAll('.filter-checkbox input').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const eventType = this.id.replace('filter-', '');
+                    const events = calendar.getEvents();
+                    
+                    events.forEach(event => {
+                        if (event.classNames.includes(eventType)) {
+                            event.setProp('display', this.checked ? 'auto' : 'none');
+                        }
+                    });
+                });
+            });
+        });
+
+        function showEventDetails(event) {
+            document.getElementById('eventTitle').textContent = event.title;
+            document.getElementById('eventType').textContent = event.extendedProps.type;
+            document.getElementById('eventDateTime').textContent = 
+                `${event.start.toLocaleString()} - ${event.end.toLocaleString()}`;
+            document.getElementById('eventLocation').textContent = event.extendedProps.location;
+            document.getElementById('eventDescription').textContent = event.extendedProps.description;
+            document.getElementById('eventVolunteers').textContent = event.extendedProps.volunteers;
+            
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+        }
+
+        function addNewEvent() {
+            // Implement add new event functionality
+            alert('Add new event functionality will be implemented here');
+        }
+
+        function editEvent() {
+            // Implement edit event functionality
+            alert('Edit event functionality will be implemented here');
+        }
+
+        function deleteEvent() {
+            if (confirm('Are you sure you want to delete this event?')) {
+                // Implement delete event functionality
+                closeEventModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('eventModal');
+            if (event.target === modal) {
+                closeEventModal();
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -58,9 +58,18 @@ class Shift(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, completed
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    capacity = db.Column(db.Integer, default=5)
     
     # Add relationship to the user who created the shift
     creator = db.relationship('User', foreign_keys=[created_by], backref='created_shifts')
+    
+    # Add many-to-many relationship
+    shift_volunteers = db.Table('shift_volunteers',
+        db.Column('shift_id', db.Integer, db.ForeignKey('shift.id')),
+        db.Column('volunteer_id', db.Integer, db.ForeignKey('volunteer.id'))
+    )
+    
+    volunteers = db.relationship('Volunteer', secondary=shift_volunteers, backref='shifts')
 
 class InventoryItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,3 +90,16 @@ class Notification(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, sent, failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sent_at = db.Column(db.DateTime)
+
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    feedback_type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    # Relationship with User (optional)
+    user = db.relationship('User', backref='feedback')

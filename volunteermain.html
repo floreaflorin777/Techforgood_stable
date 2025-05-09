@@ -198,7 +198,6 @@
 
     .action-button:hover {
       background: #e9ecef;
-      transform: translateY(-2px);
     }
 
     .action-button i {
@@ -770,6 +769,149 @@
       justify-content: center;
       font-size: 0.7em;
     }
+
+    /* Feedback Form Styles */
+    .feedback-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    .feedback-form {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .form-group textarea {
+      height: 150px;
+      resize: vertical;
+    }
+
+    .rating {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .rating input {
+      display: none;
+    }
+
+    .rating label {
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #ddd;
+    }
+
+    .rating label:hover,
+    .rating label:hover ~ label,
+    .rating input:checked ~ label {
+      color: #FFD700;
+    }
+
+    .submit-btn {
+      background-color: #4caf50;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Feedback Modal Styles */
+    .feedback-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .feedback-modal.active {
+      display: flex;
+    }
+
+    .feedback-modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .feedback-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 15px;
+      width: 100%;
+      border: none;
+      text-align: left;
+    }
+
+    .feedback-button:hover {
+      background: #e9ecef;
+    }
+
+    .feedback-button i {
+      color: #FFD700;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
@@ -817,11 +959,11 @@
       <section class="vb-card">
         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
         <div class="quick-actions">
-          <div class="action-button">
+          <div class="action-button" onclick="window.location.href='shifts.html'">
             <i class="fas fa-calendar-plus"></i>
             <span>Sign Up for Shift</span>
           </div>
-          <div class="action-button">
+          <div class="action-button" onclick="window.location.href='report_hours.html'">
             <i class="fas fa-file-alt"></i>
             <span>Report Hours</span>
           </div>
@@ -829,13 +971,31 @@
             <i class="fas fa-question-circle"></i>
             <span>Get Help</span>
           </div>
+          <div class="action-button" onclick="window.location.href='my_shifts.html'">
+            <i class="fas fa-calendar-check"></i>
+            <span>My Shifts</span>
+          </div>
+          <div class="action-button" onclick="window.location.href='my_profile.html'">
+            <i class="fas fa-user"></i>
+            <span>My Profile</span>
+          </div>
         </div>
+        <button class="feedback-button" onclick="openFeedbackModal()">
+          <i class="fas fa-comment-alt"></i>
+          <span>Provide Feedback</span>
+        </button>
       </section>
 
       <!-- Existing Calendar Section -->
       <section class="vb-calendar">
         <h3><i class="fas fa-calendar"></i> Calendar</h3>
         <div id="calendar"></div>
+        <div style="text-align: center; margin-top: 15px;">
+          <a href="calendar.html" class="calendar-btn secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+            <i class="fas fa-expand"></i>
+            View Full Calendar
+          </a>
+        </div>
       </section>
 
       <!-- Volunteer Progress Section -->
@@ -1012,6 +1172,59 @@
         </div>
       </div>
     </div>
+
+    <!-- Feedback Modal -->
+    <div class="feedback-modal" id="feedbackModal">
+      <div class="feedback-modal-content">
+        <span class="close-modal" onclick="closeFeedbackModal()">&times;</span>
+        <h3><i class="fas fa-comment-alt"></i> Volunteer Feedback</h3>
+        <form class="feedback-form" action="{{ url_for('submit_feedback') }}" method="POST">
+          <div class="form-group">
+            <label for="name">Name (Optional)</label>
+            <input type="text" id="name" name="name" placeholder="Your name">
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email (Optional)</label>
+            <input type="email" id="email" name="email" placeholder="Your email">
+          </div>
+          
+          <div class="form-group">
+            <label for="feedback_type">Feedback Type</label>
+            <select id="feedback_type" name="feedback_type" required>
+              <option value="">Select feedback type</option>
+              <option value="suggestion">Suggestion</option>
+              <option value="issue">Issue</option>
+              <option value="praise">Praise</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="message">Your Feedback</label>
+            <textarea id="message" name="message" required placeholder="Please share your thoughts, suggestions, or concerns..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>How would you rate your experience?</label>
+            <div class="rating">
+              <input type="radio" id="star5" name="rating" value="5">
+              <label for="star5">★</label>
+              <input type="radio" id="star4" name="rating" value="4">
+              <label for="star4">★</label>
+              <input type="radio" id="star3" name="rating" value="3">
+              <label for="star3">★</label>
+              <input type="radio" id="star2" name="rating" value="2">
+              <label for="star2">★</label>
+              <input type="radio" id="star1" name="rating" value="1">
+              <label for="star1">★</label>
+            </div>
+          </div>
+          
+          <button type="submit" class="submit-btn">Submit Feedback</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
@@ -1147,6 +1360,60 @@
         tab.classList.add('active');
         // Here you would typically load different chat content
       });
+    });
+
+    // Feedback Modal Functions
+    function openFeedbackModal() {
+      document.getElementById('feedbackModal').classList.add('active');
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('feedbackModal');
+      if (event.target === modal) {
+        closeFeedbackModal();
+      }
+    }
+
+    // Handle feedback form submission
+    document.querySelector('.feedback-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const form = e.target;
+      const submitBtn = form.querySelector('.submit-btn');
+      const originalBtnText = submitBtn.textContent;
+      
+      try {
+        submitBtn.textContent = 'Submitting...';
+        submitBtn.disabled = true;
+        
+        const formData = new FormData(form);
+        const response = await fetch('/submit_feedback', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          // Show success message
+          alert(result.message);
+          // Reset form and close modal
+          form.reset();
+          closeFeedbackModal();
+        } else {
+          throw new Error(result.message || 'Failed to submit feedback');
+        }
+      } catch (error) {
+        alert(error.message || 'There was an error submitting your feedback. Please try again.');
+      } finally {
+        submitBtn.textContent = originalBtnText;
+        submitBtn.disabled = false;
+      }
     });
   </script>
 </body>

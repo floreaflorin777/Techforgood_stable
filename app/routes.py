@@ -26,7 +26,7 @@ def contact():
     return render_template('contact.html')
 
 # Import models and services after Blueprint creation to avoid circular imports
-from app.models import db, User, Volunteer, InventoryItem, Shift
+from app.models import db, User, Volunteer, InventoryItem, Shift, Feedback
 from app.notify import NotificationService
 
 notification_service = NotificationService()
@@ -329,3 +329,43 @@ def inventory_analytics():
         'low_stock_items': low_stock_items,
         'expiring_soon': expiring_soon
     }), 200
+
+@main.route('/submit_feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.form
+        
+        # Create new feedback entry
+        feedback = Feedback(
+            name=data.get('name'),
+            email=data.get('email'),
+            feedback_type=data.get('feedback_type'),
+            message=data.get('message'),
+            rating=data.get('rating'),
+            user_id=current_user.id if current_user.is_authenticated else None
+        )
+        
+        db.session.add(feedback)
+        db.session.commit()
+        
+        # Send notification to admin about new feedback
+        admin_users = User.query.filter_by(role='admin').all()
+        for admin in admin_users:
+            notification_service.create_notification(
+                user_id=admin.id,
+                message=f"New feedback received: {feedback.feedback_type}",
+                notification_type='system'
+            )
+        
+        return jsonify({
+            'message': 'Thank you for your feedback!',
+            'status': 'success'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error submitting feedback: {str(e)}")
+        return jsonify({
+            'message': 'There was an error submitting your feedback. Please try again.',
+            'status': 'error'
+        }), 500
