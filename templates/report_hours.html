@@ -107,7 +107,7 @@
     <div class="report-container">
         <div class="report-header">
             <h1>Report Hours</h1>
-            <button class="back-btn" onclick="window.location.href='calendar.html'">
+            <button class="back-btn" data-href="{{ url_for('main.calendar') }}">
                 <i class="fas fa-arrow-left"></i> Back to Calendar
             </button>
         </div>
@@ -145,6 +145,14 @@
             e.preventDefault();
             document.getElementById('hoursForm').style.display = 'none';
             document.getElementById('confirmationMsg').style.display = 'block';
+        });
+
+        // Add navigation handler for back button
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
         });
     </script>
 </body>

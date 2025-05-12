@@ -8,20 +8,8 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
     
-    # Database Configuration
-    # Default values for PythonAnywhere
-    is_pythonanywhere = 'PYTHONANYWHERE_DOMAIN' in os.environ
-    default_db_host = 'florinm12.mysql.eu.pythonanywhere-services.com' if is_pythonanywhere else 'localhost'
-    
-    DB_HOST = os.getenv('DB_HOST', default_db_host)
-    DB_PORT = int(os.getenv('DB_PORT', 3306))
-    DB_NAME = os.getenv('DB_NAME', 'florinm12$foodbank' if is_pythonanywhere else 'foodbank')
-    DB_USER = os.getenv('DB_USER', 'florinm12' if is_pythonanywhere else 'root')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    
-    # SQLAlchemy Configuration
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Firebase Configuration
+    FIREBASE_CREDENTIALS = os.getenv('FIREBASE_CREDENTIALS', 'firebase-credentials.json')
     
     # Rate Limiting
     RATELIMIT_DEFAULT = "200 per day;50 per hour"
@@ -34,21 +22,26 @@ class Config:
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    
+    # Email configuration for Flask-Mail
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').lower() in ('true', 'yes', '1')
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME', 'your_email@gmail.com')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', 'your_app_password')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'your_email@gmail.com')
 
 class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_ECHO = True
 
 class TestingConfig(Config):
     DEBUG = False
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
 class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_ECHO = False
 
 config = {
     'development': DevelopmentConfig,
@@ -56,14 +49,3 @@ config = {
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
-class Config:
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@hostname/dbname'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # Email configuration for Flask-Mail
-    MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = 'your_email@gmail.com'
-    MAIL_PASSWORD = 'your_app_password'  # Use an App Password for Gmail
-    MAIL_DEFAULT_SENDER = 'your_email@gmail.com'

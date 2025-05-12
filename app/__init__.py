@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -9,20 +8,18 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
-from flask_migrate import Migrate
 from flask_mail import Mail
 
 # Load environment variables
 load_dotenv()
 
 # Initialize extensions
-db = SQLAlchemy()
 jwt = JWTManager()
 limiter = Limiter(key_func=get_remote_address)
 mail = Mail()
 
 def create_app(config_name='development'):
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='../templates', static_folder='../static')
     
     # Load configuration
     from config import config
@@ -70,20 +67,33 @@ def create_app(config_name='development'):
     jwt.init_app(app)
     mail.init_app(app)
     
-    # Setup database connection
-    from app.database import get_database_url
-    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url(app)
-    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid overhead
-    db.init_app(app)
+    # Initialize Firebase
+    from app.firebase_config import initialize_firebase
+    app.config['FIRESTORE_DB'] = initialize_firebase(app)
+    app.logger.info('Firebase initialized')
     
     # Register blueprints
+    # First, register main routes for views
     from app.routes import main as main_blueprint
-    from app.auth import auth as auth_blueprint
-    from app.notify import notify as notify_blueprint  # Ensure notify blueprint is added
-    
     app.register_blueprint(main_blueprint)
+    
+    # Register Firebase-based routes
+    from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
-    app.register_blueprint(notify_blueprint, url_prefix='/notify')  # Register the notification routes
+    
+    from app.routes_volunteers import volunteers_bp
+    app.register_blueprint(volunteers_bp)
+    
+    from app.routes_inventory import inventory_bp
+    app.register_blueprint(inventory_bp)
+    
+    from app.routes_shifts import shifts_bp
+    app.register_blueprint(shifts_bp)
+    
+    from app.routes_admin import admin_bp
+    app.register_blueprint(admin_bp)
+    
+    from app.notify import notify as notify_blueprint
+    app.register_blueprint(notify_blueprint, url_prefix='/notify')
     
     return app

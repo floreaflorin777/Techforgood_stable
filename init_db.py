@@ -1,134 +1,177 @@
-from dotenv import load_dotenv
+#!/usr/bin/env python3
+"""
+Initialize Firebase Firestore with sample data
+"""
 import os
-import pymysql
-import json
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
-import socket
+from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials, firestore
+import datetime
+from werkzeug.security import generate_password_hash
 
 # Load environment variables
 load_dotenv()
 
-def is_running_on_pythonanywhere():
-    """Check if the code is running on PythonAnywhere"""
-    return 'PYTHONANYWHERE_DOMAIN' in os.environ
-
-def get_database_credentials():
-    """Get database credentials from environment variables"""
-    db_user = os.getenv('DB_USER', 'florinm12')
-    db_password = os.getenv('DB_PASSWORD', 'Techforgood')
-    db_host = os.getenv('DB_HOST', 'florinm12.mysql.eu.pythonanywhere-services.com')
-    db_port = int(os.getenv('DB_PORT', 3306))
-    db_name = os.getenv('DB_NAME', 'florinm12$foodbank')
-    return db_user, db_password, db_host, db_port, db_name
-
-def test_direct_connection():
-    """Test direct connection to the database (for PythonAnywhere)"""
-    db_user, db_password, db_host, db_port, db_name = get_database_credentials()
+def init_firebase():
+    """Initialize Firebase Admin SDK"""
+    # Path to service account key JSON file
+    cred_path = os.getenv('FIREBASE_CREDENTIALS', 'firebase-credentials.json')
     
     try:
-        # Test direct PyMySQL connection
-        connection = pymysql.connect(
-            host=db_host,
-            port=db_port,
-            user=db_user,
-            password=db_password,
-            database=db_name
-        )
-        print("Direct PyMySQL connection successful!")
-        connection.close()
-        
-        # Test SQLAlchemy connection
-        db_url = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-        engine = create_engine(db_url)
-        with engine.connect() as conn:
-            print("SQLAlchemy connection successful!")
-            result = conn.execute(text("SELECT DATABASE()"))
-            print(f"Connected to database: {result.scalar()}")
-        return True
+        # Initialize Firebase Admin SDK
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        return firestore.client()
     except Exception as e:
-        print(f"Direct connection error: {str(e)}")
-        return False
+        print(f"Error initializing Firebase: {str(e)}")
+        return None
 
-def init_database():
-    from app import create_app, db
-    from app.models import User, Volunteer, InventoryItem, Shift, Notification
+def create_sample_data(db):
+    """Create sample data in Firestore"""
+    # Add sample users
+    users_ref = db.collection('users')
+    volunteers_ref = db.collection('volunteers')
+    shifts_ref = db.collection('shifts')
+    inventory_ref = db.collection('inventory')
+    
+    # Check if users already exist to avoid duplicates
+    if len(list(users_ref.limit(1).stream())) > 0:
+        print("Database already contains data. Skipping sample data creation.")
+        return
+    
+    print("Creating sample data...")
+    
+    # Create admin user
+    admin_user = {
+        'name': 'Admin User',
+        'email': 'admin@example.com',
+        'password_hash': generate_password_hash('admin123'),
+        'role': 'admin',
+        'phone': '+1234567890',
+        'is_active': True,
+        'created_at': datetime.datetime.utcnow(),
+        'notification_preferences': {}
+    }
+    admin_ref = users_ref.add(admin_user)[1]
+    print(f"Created admin user with ID: {admin_ref.id}")
+    
+    # Create manager user
+    manager_user = {
+        'name': 'Manager User',
+        'email': 'manager@example.com',
+        'password_hash': generate_password_hash('manager123'),
+        'role': 'manager',
+        'phone': '+1234567891',
+        'is_active': True,
+        'created_at': datetime.datetime.utcnow(),
+        'notification_preferences': {}
+    }
+    manager_ref = users_ref.add(manager_user)[1]
+    print(f"Created manager user with ID: {manager_ref.id}")
+    
+    # Create volunteer users and profiles
+    for i in range(1, 4):
+        # Create user
+        volunteer_user = {
+            'name': f'Volunteer {i}',
+            'email': f'volunteer{i}@example.com',
+            'password_hash': generate_password_hash(f'volunteer{i}'),
+            'role': 'volunteer',
+            'phone': f'+123456789{i+1}',
+            'is_active': True,
+            'created_at': datetime.datetime.utcnow(),
+            'notification_preferences': {}
+        }
+        volunteer_user_ref = users_ref.add(volunteer_user)[1]
+        print(f"Created volunteer user {i} with ID: {volunteer_user_ref.id}")
+        
+        # Create volunteer profile
+        volunteer_profile = {
+            'user_id': volunteer_user_ref.id,
+            'availability': {
+                'monday': ['09:00-17:00'],
+                'wednesday': ['09:00-17:00'],
+                'friday': ['09:00-17:00']
+            },
+            'skills': f'Skill {i}, Skill {i+1}',
+            'created_at': datetime.datetime.utcnow()
+        }
+        volunteer_profile_ref = volunteers_ref.add(volunteer_profile)[1]
+        print(f"Created volunteer profile {i} with ID: {volunteer_profile_ref.id}")
+        
+        # Create shifts for volunteer
+        for j in range(1, 3):
+            day_offset = j * 2  # 2, 4, 6 days from now
+            shift_date = datetime.datetime.utcnow() + datetime.timedelta(days=day_offset)
+            shift = {
+                'start_time': shift_date.replace(hour=9, minute=0, second=0, microsecond=0),
+                'end_time': shift_date.replace(hour=17, minute=0, second=0, microsecond=0),
+                'volunteer_id': volunteer_profile_ref.id,
+                'volunteer_ids': [volunteer_profile_ref.id],
+                'status': 'confirmed',
+                'created_by': admin_ref.id,
+                'created_at': datetime.datetime.utcnow(),
+                'capacity': 3
+            }
+            shift_ref = shifts_ref.add(shift)[1]
+            print(f"Created shift {j} for volunteer {i} with ID: {shift_ref.id}")
+    
+    # Create inventory items
+    inventory_items = [
+        {
+            'name': 'Rice',
+            'quantity': 100,
+            'unit': 'kg',
+            'category': 'non-perishable',
+            'expiry_date': (datetime.datetime.utcnow() + datetime.timedelta(days=365)),
+            'added_by': manager_ref.id,
+            'added_at': datetime.datetime.utcnow(),
+            'last_updated': datetime.datetime.utcnow()
+        },
+        {
+            'name': 'Beans',
+            'quantity': 50,
+            'unit': 'kg',
+            'category': 'non-perishable',
+            'expiry_date': (datetime.datetime.utcnow() + datetime.timedelta(days=365)),
+            'added_by': manager_ref.id,
+            'added_at': datetime.datetime.utcnow(),
+            'last_updated': datetime.datetime.utcnow()
+        },
+        {
+            'name': 'Milk',
+            'quantity': 20,
+            'unit': 'l',
+            'category': 'perishable',
+            'expiry_date': (datetime.datetime.utcnow() + datetime.timedelta(days=7)),
+            'added_by': manager_ref.id,
+            'added_at': datetime.datetime.utcnow(),
+            'last_updated': datetime.datetime.utcnow()
+        },
+        {
+            'name': 'Bread',
+            'quantity': 5,
+            'unit': 'units',
+            'category': 'perishable',
+            'expiry_date': (datetime.datetime.utcnow() + datetime.timedelta(days=2)),
+            'added_by': manager_ref.id,
+            'added_at': datetime.datetime.utcnow(),
+            'last_updated': datetime.datetime.utcnow()
+        }
+    ]
+    
+    for item in inventory_items:
+        item_ref = inventory_ref.add(item)[1]
+        print(f"Created inventory item {item['name']} with ID: {item_ref.id}")
+    
+    print("Sample data creation completed!")
 
-    app = create_app()
-    with app.app_context():
-        try:
-            # Test connection first
-            test_direct_connection()
-            
-            # Create all tables
-            db.create_all()
-            print("Database tables created successfully!")
-
-            # Check if admin user exists
-            admin = User.query.filter_by(email='admin@foodbank.com').first()
-            if not admin:
-                # Create admin user
-                admin = User(
-                    name='Admin',
-                    email='admin@foodbank.com',
-                    role='admin'
-                )
-                admin.set_password('admin123')  # Remember to change this password
-                db.session.add(admin)
-                db.session.commit()
-                print("Admin user created successfully!")
-            else:
-                print("Admin user already exists!")
-                
-            # Create a sample manager if none exists
-            manager = User.query.filter_by(email='manager@foodbank.com').first()
-            if not manager:
-                manager = User(
-                    name='Manager',
-                    email='manager@foodbank.com',
-                    role='manager',
-                    phone='+1234567890'
-                )
-                manager.set_password('manager123')
-                db.session.add(manager)
-                db.session.commit()
-                print("Manager user created successfully!")
-            
-            # Create a sample volunteer if none exists
-            volunteer_user = User.query.filter_by(email='volunteer@foodbank.com').first()
-            if not volunteer_user:
-                volunteer_user = User(
-                    name='John Volunteer',
-                    email='volunteer@foodbank.com',
-                    role='volunteer',
-                    phone='+9876543210'
-                )
-                volunteer_user.set_password('volunteer123')
-                db.session.add(volunteer_user)
-                db.session.commit()
-                
-                # Check if volunteer profile exists
-                volunteer = Volunteer.query.filter_by(user_id=volunteer_user.id).first()
-                if not volunteer:
-                    volunteer = Volunteer(
-                        user_id=volunteer_user.id,
-                        availability=json.dumps({
-                            "monday": ["09:00-17:00"],
-                            "wednesday": ["13:00-18:00"],
-                            "friday": ["09:00-14:00"]
-                        }),
-                        skills="Inventory management, Food distribution"
-                    )
-                    db.session.add(volunteer)
-                    db.session.commit()
-                    print("Sample volunteer created successfully!")
-        except SQLAlchemyError as e:
-            print(f"Database error: {str(e)}")
-            db.session.rollback()
-        except Exception as e:
-            print(f"Unexpected error: {str(e)}")
-        finally:
-            db.session.close()
-
-if __name__ == '__main__':
-    init_database()
+if __name__ == "__main__":
+    print("Initializing Firestore database...")
+    db = init_firebase()
+    
+    if db:
+        create_sample_data(db)
+        print("Firestore initialization complete.")
+    else:
+        print("Failed to initialize Firestore database.")

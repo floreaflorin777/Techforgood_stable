@@ -267,15 +267,15 @@
         <div class="calendar-header">
             <h1>Food Bank Calendar</h1>
             <div class="calendar-actions">
-                <div class="action-button" onclick="window.location.href='shifts.html'">
+                <div class="action-button" data-href="{{ url_for('main.shifts') }}">
                     <i class="fas fa-calendar-plus"></i>
                     <span>Sign Up for Shift</span>
                 </div>
-                <div class="action-button" onclick="window.location.href='report_hours.html'">
+                <div class="action-button" data-href="{{ url_for('main.report_hours') }}">
                     <i class="fas fa-file-alt"></i>
                     <span>Report Hours</span>
                 </div>
-                <button class="calendar-btn primary" onclick="window.location.href='volunteermain.html'">
+                <button class="calendar-btn primary" data-href="{{ url_for('main.volunteer_dashboard') }}">
                     <i class="fas fa-arrow-left"></i>
                     Back to Dashboard
                 </button>
@@ -487,6 +487,16 @@
                 closeEventModal();
             }
         }
+
+        // Add navigation handlers for buttons with data-href attributes
+        document.querySelectorAll('[data-href]').forEach(element => {
+            element.addEventListener('click', function() {
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
     </script>
 </body>
 </html> 

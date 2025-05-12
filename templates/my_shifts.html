@@ -95,8 +95,8 @@
     <div class="shifts-container">
         <div class="shifts-header">
             <h1>My Shifts</h1>
-            <button class="back-btn" onclick="window.location.href='volunteermain.html'">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <button class="back-btn" data-href="{{ url_for('main.calendar') }}">
+                <i class="fas fa-arrow-left"></i> Back to Calendar
             </button>
         </div>
         <div class="shift-list">
@@ -118,5 +118,14 @@
             </div>
         </div>
     </div>
+    <script>
+        // Add navigation handler for back button
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    </script>
 </body>
 </html> 

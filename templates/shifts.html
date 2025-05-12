@@ -143,7 +143,7 @@
     <div class="shifts-container">
         <div class="shifts-header">
             <h1>Sign Up for Shifts</h1>
-            <button class="back-btn" onclick="window.location.href='calendar.html'">
+            <button class="back-btn" data-href="{{ url_for('main.calendar') }}">
                 <i class="fas fa-arrow-left"></i> Back to Calendar
             </button>
         </div>
@@ -193,6 +193,14 @@
         function closeModal() {
             document.getElementById('signupModal').classList.remove('active');
         }
+
+        // Add navigation handler for back button
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
     </script>
 </body>
 </html> 

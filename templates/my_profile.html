@@ -106,7 +106,7 @@
     <div class="profile-container">
         <div class="profile-header">
             <h1>My Profile</h1>
-            <button class="back-btn" onclick="window.location.href='volunteermain.html'">
+            <button class="back-btn" data-href="{{ url_for('main.volunteer_dashboard') }}">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </button>
         </div>
@@ -141,9 +141,20 @@
         document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
             document.getElementById('successMsg').style.display = 'block';
+            
+            // Store the dashboard URL and redirect after timeout
+            const dashboardUrl = "{{ url_for('main.volunteer_dashboard') }}";
             setTimeout(function() {
-                window.location.href = 'volunteermain.html';
+                window.location.href = dashboardUrl;
             }, 1500);
+        });
+
+        // Add navigation handler for back button
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
         });
     </script>
 </body>

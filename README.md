@@ -2,6 +2,8 @@
 
 A comprehensive system for managing food bank operations, including volunteer scheduling, inventory management, and analytics.
 
+> **Important Update**: This project has been migrated from MySQL to Firebase Firestore for improved reliability and real-time capabilities. See [Firebase Migration](docs/FIREBASE_UPDATE.md) for details.
+
 ## Features
 
 - **User Management**
@@ -38,7 +40,8 @@ A comprehensive system for managing food bank operations, including volunteer sc
 - **Backend**
   - Python 3.8+
   - Flask
-  - SQLAlchemy
+  - Firebase Firestore
+  - Firebase Admin SDK
   - JWT Authentication
   - Twilio (for WhatsApp notifications)
 
@@ -63,14 +66,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file based on the `.env.example` template and fill in your PythonAnywhere database credentials.
+4. Create a Firebase project and download service account credentials (see [Firebase Setup](docs/FIREBASE_SETUP.md)).
 
-5. Initialize the database:
+5. Save the Firebase credentials as `firebase-credentials.json` in the project root or set the `FIREBASE_CREDENTIALS` environment variable.
+
+6. Initialize the Firestore database with sample data:
 ```bash
 python init_db.py
 ```
 
-6. Configure your PythonAnywhere web app to use the WSGI file (wsgi.py) in this project.
+7. Configure your PythonAnywhere web app to use the WSGI file (wsgi.py) in this project.
 
 ### Local Development Setup
 
@@ -91,29 +96,19 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file based on the `.env.example` template and configure for local development:
-   - For direct local database: Set your local MySQL credentials
-   - For PythonAnywhere database via SSH tunnel: Set SSH tunnel credentials
+4. Create a Firebase project and download service account credentials (see [Firebase Setup](docs/FIREBASE_SETUP.md)).
 
-5. Initialize the database:
+5. Save the Firebase credentials as `firebase-credentials.json` in the project root or set the `FIREBASE_CREDENTIALS` environment variable.
+
+6. Initialize the Firestore database with sample data:
 ```bash
 python init_db.py
 ```
 
-6. Run the application:
+7. Run the application:
 ```bash
 flask run
 ```
-
-### Database Connection
-
-The application supports two database connection modes:
-
-1. **Direct Connection** (PythonAnywhere): When deployed on PythonAnywhere, the app connects directly to the MySQL database.
-
-2. **SSH Tunnel Connection** (Local Development): For local development connecting to a PythonAnywhere database, an SSH tunnel is created automatically.
-
-The connection mode is detected automatically based on the environment.
 
 ## API Documentation
 
@@ -186,7 +181,7 @@ Content-Type: application/json
 {
     "start_time": "2024-04-20T09:00:00",
     "end_time": "2024-04-20T17:00:00",
-    "volunteer_id": 1
+    "volunteer_id": "volunteer-document-id"
 }
 ```
 

@@ -43,4 +43,9 @@ logs/
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Firebase
+firebase-credentials.json
+*firebase*.json
+!firebase-credentials-example.json 

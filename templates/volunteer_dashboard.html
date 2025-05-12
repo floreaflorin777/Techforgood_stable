@@ -959,28 +959,28 @@
       <section class="vb-card">
         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
         <div class="quick-actions">
-          <div class="action-button" onclick="window.location.href='shifts.html'">
+          <div class="action-button" data-href="{{ url_for('main.shifts') }}">
             <i class="fas fa-calendar-plus"></i>
             <span>Sign Up for Shift</span>
           </div>
-          <div class="action-button" onclick="window.location.href='report_hours.html'">
+          <div class="action-button" data-href="{{ url_for('main.report_hours') }}">
             <i class="fas fa-file-alt"></i>
             <span>Report Hours</span>
           </div>
-          <div class="action-button" onclick="window.location.href='contact.html'">
+          <div class="action-button" data-href="{{ url_for('main.contact') }}">
             <i class="fas fa-question-circle"></i>
             <span>Get Help</span>
           </div>
-          <div class="action-button" onclick="window.location.href='my_shifts.html'">
+          <div class="action-button" data-href="{{ url_for('main.my_shifts') }}">
             <i class="fas fa-calendar-check"></i>
             <span>My Shifts</span>
           </div>
-          <div class="action-button" onclick="window.location.href='my_profile.html'">
+          <div class="action-button" data-href="{{ url_for('main.my_profile') }}">
             <i class="fas fa-user"></i>
             <span>My Profile</span>
           </div>
         </div>
-        <button class="feedback-button" onclick="openFeedbackModal()">
+        <button class="feedback-button" id="feedbackBtn">
           <i class="fas fa-comment-alt"></i>
           <span>Provide Feedback</span>
         </button>
@@ -991,7 +991,7 @@
         <h3><i class="fas fa-calendar"></i> Calendar</h3>
         <div id="calendar"></div>
         <div style="text-align: center; margin-top: 15px;">
-          <a href="calendar.html" class="calendar-btn secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+          <a href="{{ url_for('main.calendar') }}" class="calendar-btn secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
             <i class="fas fa-expand"></i>
             View Full Calendar
           </a>
@@ -1178,7 +1178,7 @@
       <div class="feedback-modal-content">
         <span class="close-modal" onclick="closeFeedbackModal()">&times;</span>
         <h3><i class="fas fa-comment-alt"></i> Volunteer Feedback</h3>
-        <form class="feedback-form" action="{{ url_for('submit_feedback') }}" method="POST">
+        <form class="feedback-form" action="{{ url_for('main.submit_feedback') }}" method="POST">
           <div class="form-group">
             <label for="name">Name (Optional)</label>
             <input type="text" id="name" name="name" placeholder="Your name">
@@ -1414,6 +1414,21 @@
         submitBtn.textContent = originalBtnText;
         submitBtn.disabled = false;
       }
+    });
+
+    // Add navigation for action buttons using data-href attributes
+    document.querySelectorAll('.action-button').forEach(button => {
+      button.addEventListener('click', function() {
+        const href = this.getAttribute('data-href');
+        if (href) {
+          window.location.href = href;
+        }
+      });
+    });
+
+    // Open feedback modal with the feedback button
+    document.getElementById('feedbackBtn').addEventListener('click', function() {
+      openFeedbackModal();
     });
   </script>
 </body>
