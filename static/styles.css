@@ -166,6 +166,22 @@ main p {
     background-color: #e53935;
 }
 
+.register-link {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
 .main-image {
     width: 80%;
     max-width: 600px;
@@ -390,4 +406,85 @@ services img {
     height: 25px;
     line-height: 25px;
   }
+}
+
+/* Registration form styles */
+.registration-form {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.skills-checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+    text-align: left;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+}
+
+.skill-category h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.skill-category .checkbox-item {
+    margin-bottom: 5px;
+}
+
+select.form-input[multiple] {
+    height: auto;
+    min-height: 120px;
+}
+
+select.form-input option {
+    padding: 8px;
+}
+
+select.form-input option:checked {
+    background-color: #FFD700;
+    color: #333;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.8rem;
+    text-align: left;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 80px;
 }

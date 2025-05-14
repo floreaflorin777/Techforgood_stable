@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Registration - Tech for Good</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" type="image/png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" alt="Tech for Good Logo">
+            <h1>Tech for Good</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/">About Us</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h2>Volunteer Registration</h2>
+        <p>Join our community of volunteers and help make a difference!</p>
+        
+        <div class="registration-form">
+            <form id="registerForm" onsubmit="handleRegistration(event)">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Skills & Experience:</label>
+                    <div class="skills-checkbox-group">
+                        <div class="skill-category">
+                            <h4>Food Handling</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="food_sorting" name="skills" value="food_sorting">
+                                <label for="food_sorting">Food Sorting</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="food_packing" name="skills" value="food_packing">
+                                <label for="food_packing">Food Packing</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="cooking" name="skills" value="cooking">
+                                <label for="cooking">Cooking</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="food_safety" name="skills" value="food_safety">
+                                <label for="food_safety">Food Safety Knowledge</label>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h4>Logistics</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="inventory" name="skills" value="inventory">
+                                <label for="inventory">Inventory Management</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="driving" name="skills" value="driving">
+                                <label for="driving">Driving/Delivery</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="warehouse" name="skills" value="warehouse">
+                                <label for="warehouse">Warehouse Operations</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="heavy_lifting" name="skills" value="heavy_lifting">
+                                <label for="heavy_lifting">Heavy Lifting</label>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h4>Client Services</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="customer_service" name="skills" value="customer_service">
+                                <label for="customer_service">Customer Service</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crisis_support" name="skills" value="crisis_support">
+                                <label for="crisis_support">Crisis Support</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="social_services" name="skills" value="social_services">
+                                <label for="social_services">Social Services Knowledge</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="multilingual" name="skills" value="multilingual">
+                                <label for="multilingual">Multilingual</label>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h4>Administrative</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="data_entry" name="skills" value="data_entry">
+                                <label for="data_entry">Data Entry</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="fundraising" name="skills" value="fundraising">
+                                <label for="fundraising">Fundraising</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="event_planning" name="skills" value="event_planning">
+                                <label for="event_planning">Event Planning</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="marketing" name="skills" value="marketing">
+                                <label for="marketing">Marketing/Social Media</label>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h4>Other Skills</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="first_aid" name="skills" value="first_aid">
+                                <label for="first_aid">First Aid Certified</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="teaching" name="skills" value="teaching">
+                                <label for="teaching">Teaching/Training</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="maintenance" name="skills" value="maintenance">
+                                <label for="maintenance">Maintenance/Repairs</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="leadership" name="skills" value="leadership">
+                                <label for="leadership">Team Leadership</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Availability:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="monday" name="availability" value="monday">
+                            <label for="monday">Monday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="tuesday" name="availability" value="tuesday">
+                            <label for="tuesday">Tuesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="wednesday" name="availability" value="wednesday">
+                            <label for="wednesday">Wednesday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="thursday" name="availability" value="thursday">
+                            <label for="thursday">Thursday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="friday" name="availability" value="friday">
+                            <label for="friday">Friday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="saturday" name="availability" value="saturday">
+                            <label for="saturday">Saturday</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="sunday" name="availability" value="sunday">
+                            <label for="sunday">Sunday</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn login-submit-btn">Register</button>
+                <a href="/" class="btn cancel-btn" style="text-align: center; display: block; text-decoration: none;">Cancel</a>
+            </form>
+        </div>
+    </main>
+    <footer>
+        <p>© 2025 . All rights reserved.</p>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script>
+        async function handleRegistration(event) {
+            event.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Get selected skills
+            const skillsCheckboxes = document.querySelectorAll('input[name="skills"]:checked');
+            const selectedSkills = Array.from(skillsCheckboxes).map(checkbox => checkbox.value);
+            
+            // Get availability checkboxes
+            const availabilityCheckboxes = document.querySelectorAll('input[name="availability"]:checked');
+            const availability = {};
+            
+            availabilityCheckboxes.forEach(checkbox => {
+                availability[checkbox.value] = true;
+            });
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+            
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        password: password,
+                        phone: phone,
+                        role: 'volunteer',
+                        skills: selectedSkills,
+                        availability: availability
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Registration successful! You can now log in.');
+                    window.location.href = '/';
+                } else {
+                    alert(data.error || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('An error occurred during registration');
+            }
+        }
+    </script>
+</body>
+</html> 

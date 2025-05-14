@@ -27,10 +27,16 @@ def register():
         # If the role is volunteer, create a volunteer profile
         if data.get('role', 'volunteer') == 'volunteer':
             from app.firestore_models import Volunteer
+            
+            # Convert skills array to string if needed
+            skills = data.get('skills', [])
+            if isinstance(skills, list):
+                skills = ', '.join(skills)
+            
             Volunteer.create(
                 user_id=user_id,
                 availability=data.get('availability', {}),
-                skills=data.get('skills', '')
+                skills=skills
             )
         
         current_app.logger.info(f"User registered: {data['email']} with role {data.get('role', 'volunteer')}")

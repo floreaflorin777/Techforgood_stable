@@ -11,6 +11,10 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
+@main.route('/register')
+def register():
+    return render_template('register.html')
+
 @main.route('/admin/dashboard')
 def admin_dashboard():
     return render_template('admin_dashboard.html')
