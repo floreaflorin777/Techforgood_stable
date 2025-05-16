@@ -67,6 +67,30 @@
       color: #FFD700;
     }
 
+    .logout-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background-color: #FFD700; 
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .logout-button:hover {
+      background-color: #e6c200; 
+    }
+
+    .logout-button i {
+      color: #000 !important; 
+      font-size: 1.1em;
+    }
+
     #calendar {
       max-width: 900px;
       margin: 20px auto;
@@ -264,10 +288,6 @@
     }
 
     /* Enhanced notification styles */
-    .notification-bell {
-      position: relative;
-      cursor: pointer;
-    }
 
     .notification-dropdown {
       position: absolute;
@@ -923,31 +943,38 @@
           <h1>Food Bank</h1>
           <h2>Tech for good</h2>
         </div>
-        <div class="notification-bell">
-          <i class="fas fa-bell fa-lg"></i>
-          <span class="notification-count">3</span>
-          <div class="notification-dropdown">
-            <div class="notification-header">
-              <h4>Notifications</h4>
-              <span class="mark-all-read">Mark all as read</span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div class="notification-bell">
+            <i class="fas fa-bell fa-lg"></i>
+            <span class="notification-count">3</span>
+            <div class="notification-dropdown">
+              <div class="notification-header">
+                <h4>Notifications</h4>
+                <span class="mark-all-read">Mark all as read</span>
+              </div>
+              <div class="notification-list">
+                <div class="notification-item unread">
+                  <div class="notification-title">New Shift Available</div>
+                  <div class="notification-time">2 hours ago</div>
+                  <div class="notification-message">A new shift is available for tomorrow's food distribution.</div>
+                </div>
+                <div class="notification-item unread">
+                  <div class="notification-title">Training Reminder</div>
+                  <div class="notification-time">5 hours ago</div>
+                  <div class="notification-message">Don't forget about the volunteer training session next Monday.</div>
+                </div>
+                <div class="notification-item unread">
+                  <div class="notification-title">Achievement Unlocked</div>
+                  <div class="notification-time">1 day ago</div>
+                  <div class="notification-message">Congratulations! You've reached 30 volunteer hours.</div>
+                </div>
+              </div>
             </div>
-            <div class="notification-list">
-              <div class="notification-item unread">
-                <div class="notification-title">New Shift Available</div>
-                <div class="notification-time">2 hours ago</div>
-                <div class="notification-message">A new shift is available for tomorrow's food distribution.</div>
-              </div>
-              <div class="notification-item unread">
-                <div class="notification-title">Training Reminder</div>
-                <div class="notification-time">5 hours ago</div>
-                <div class="notification-message">Don't forget about the volunteer training session next Monday.</div>
-              </div>
-              <div class="notification-item unread">
-                <div class="notification-title">Achievement Unlocked</div>
-                <div class="notification-time">1 day ago</div>
-                <div class="notification-message">Congratulations! You've reached 30 volunteer hours.</div>
-              </div>
-            </div>
+          </div>
+          <div class="action-button" href="#" id="logout">
+            <a class="logout-button" href="#" id="logout">
+              <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
           </div>
         </div>
       </div>
@@ -1429,6 +1456,11 @@
     // Open feedback modal with the feedback button
     document.getElementById('feedbackBtn').addEventListener('click', function() {
       openFeedbackModal();
+    });
+
+    document.getElementById('logout').addEventListener('click', function() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
     });
   </script>
 </body>
