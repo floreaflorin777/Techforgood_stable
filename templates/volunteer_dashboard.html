@@ -7,10 +7,18 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" type="image/png">
   
+  <!-- Prevent caching for pages with authentication -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Include authentication script -->
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
   
   <style>
     .vb-dashboard {
@@ -923,29 +931,35 @@
           <h1>Food Bank</h1>
           <h2>Tech for good</h2>
         </div>
-        <div class="notification-bell">
-          <i class="fas fa-bell fa-lg"></i>
-          <span class="notification-count">3</span>
-          <div class="notification-dropdown">
-            <div class="notification-header">
-              <h4>Notifications</h4>
-              <span class="mark-all-read">Mark all as read</span>
-            </div>
-            <div class="notification-list">
-              <div class="notification-item unread">
-                <div class="notification-title">New Shift Available</div>
-                <div class="notification-time">2 hours ago</div>
-                <div class="notification-message">A new shift is available for tomorrow's food distribution.</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <a href="/" class="home-button" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 5px; background-color: #f8f9fa; padding: 8px 15px; border-radius: 20px; transition: all 0.3s ease;">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+          </a>
+          <div class="notification-bell">
+            <i class="fas fa-bell fa-lg"></i>
+            <span class="notification-count">3</span>
+            <div class="notification-dropdown">
+              <div class="notification-header">
+                <h4>Notifications</h4>
+                <span class="mark-all-read">Mark all as read</span>
               </div>
-              <div class="notification-item unread">
-                <div class="notification-title">Training Reminder</div>
-                <div class="notification-time">5 hours ago</div>
-                <div class="notification-message">Don't forget about the volunteer training session next Monday.</div>
-              </div>
-              <div class="notification-item unread">
-                <div class="notification-title">Achievement Unlocked</div>
-                <div class="notification-time">1 day ago</div>
-                <div class="notification-message">Congratulations! You've reached 30 volunteer hours.</div>
+              <div class="notification-list">
+                <div class="notification-item unread">
+                  <div class="notification-title">New Shift Available</div>
+                  <div class="notification-time">2 hours ago</div>
+                  <div class="notification-message">A new shift is available for tomorrow's food distribution.</div>
+                </div>
+                <div class="notification-item unread">
+                  <div class="notification-title">Training Reminder</div>
+                  <div class="notification-time">5 hours ago</div>
+                  <div class="notification-message">Don't forget about the volunteer training session next Monday.</div>
+                </div>
+                <div class="notification-item unread">
+                  <div class="notification-title">Achievement Unlocked</div>
+                  <div class="notification-time">1 day ago</div>
+                  <div class="notification-message">Congratulations! You've reached 30 volunteer hours.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1229,8 +1243,34 @@
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    // Check authentication when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verify user is logged in with correct role
+      checkAuthAndRedirect();
+      
+      // Initialize calendar and other components
+      initializeCalendar();
+      initializeActionButtons();
+      initializeNotifications();
+      initializeChatWidget();
+    });
+    
+    // Handle logout button clicks
+    document.addEventListener('click', function(e) {
+      if (e.target && (e.target.id === 'logoutBtn' || e.target.classList.contains('logout-btn'))) {
+        performLogout();
+      }
+    });
+    
+    // Handle browser's back button via History API
+    window.addEventListener('popstate', function(event) {
+      // Check authentication when navigation occurs
+      checkAuthAndRedirect();
+    });
+    
+    function initializeCalendar() {
       var calendarEl = document.getElementById('calendar');
+      if (!calendarEl) return;
 
       var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -1250,186 +1290,204 @@
       });
 
       calendar.render();
-    });
-
-    // Add new functionality for quick actions
-    document.querySelectorAll('.action-button').forEach(button => {
-      button.addEventListener('click', function() {
-        const action = this.querySelector('span').textContent;
-        if (action === 'Get Help') {
-          window.location.href = 'contact.html';
-        } else {
-          // Add your action handling logic here
-          console.log(`Action clicked: ${action}`);
-        }
+    }
+    
+    function initializeActionButtons() {
+      // Add action button handlers
+      document.querySelectorAll('.action-button').forEach(button => {
+        button.addEventListener('click', function() {
+          const href = this.getAttribute('data-href');
+          if (href) {
+            window.location.href = href;
+          }
+        });
       });
-    });
-
-    // Notification functionality
-    const notificationBell = document.querySelector('.notification-bell');
-    const notificationDropdown = document.querySelector('.notification-dropdown');
-    const markAllRead = document.querySelector('.mark-all-read');
-    const notificationCount = document.querySelector('.notification-count');
-    const unreadNotifications = document.querySelectorAll('.notification-item.unread');
-
-    // Toggle notification dropdown
-    notificationBell.addEventListener('click', (e) => {
-      e.stopPropagation();
-      notificationDropdown.classList.toggle('active');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!notificationBell.contains(e.target)) {
-        notificationDropdown.classList.remove('active');
-      }
-    });
-
-    // Mark all as read functionality
-    markAllRead.addEventListener('click', () => {
-      unreadNotifications.forEach(notification => {
-        notification.classList.remove('unread');
-      });
-      notificationCount.textContent = '0';
-    });
-
-    // Individual notification click handling
-    document.querySelectorAll('.notification-item').forEach(item => {
-      item.addEventListener('click', () => {
-        if (item.classList.contains('unread')) {
-          item.classList.remove('unread');
-          const currentCount = parseInt(notificationCount.textContent);
-          notificationCount.textContent = currentCount - 1;
-        }
-      });
-    });
-
-    // Chat widget functionality
-    const chatButton = document.querySelector('.chat-button');
-    const chatWindow = document.querySelector('.chat-window');
-    const minimizeButton = document.querySelector('.minimize-button');
-    const chatInput = document.querySelector('.chat-input input');
-    const sendButton = document.querySelector('.send-button');
-    const chatMessages = document.querySelector('.chat-messages');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const notificationBadge = document.querySelector('.notification-badge');
-
-    // Toggle chat window
-    chatButton.addEventListener('click', () => {
-      chatWindow.classList.toggle('active');
-      if (chatWindow.classList.contains('active')) {
-        notificationBadge.style.display = 'none';
-      }
-    });
-
-    // Minimize chat window
-    minimizeButton.addEventListener('click', () => {
-      chatWindow.classList.remove('active');
-    });
-
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const messageHTML = `
-          <div class="message sent">
-            <div class="message-sender">You</div>
-            <div class="message-content">
-              ${message}
-            </div>
-            <div class="message-time">${time}</div>
-          </div>
-        `;
-        chatMessages.insertAdjacentHTML('beforeend', messageHTML);
-        chatInput.value = '';
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Open feedback modal with the feedback button
+      const feedbackBtn = document.getElementById('feedbackBtn');
+      if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', function() {
+          openFeedbackModal();
+        });
       }
     }
+    
+    function initializeNotifications() {
+      // Notification functionality
+      const notificationBell = document.querySelector('.notification-bell');
+      const notificationDropdown = document.querySelector('.notification-dropdown');
+      const markAllRead = document.querySelector('.mark-all-read');
+      const notificationCount = document.querySelector('.notification-count');
+      const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+      
+      if (!notificationBell) return;
 
-    sendButton.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-
-    // Chat tabs functionality
-    chatTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        chatTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        // Here you would typically load different chat content
+      // Toggle notification dropdown
+      notificationBell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notificationDropdown.classList.toggle('active');
       });
-    });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (notificationBell && !notificationBell.contains(e.target)) {
+          notificationDropdown.classList.remove('active');
+        }
+      });
+
+      // Mark all as read functionality
+      if (markAllRead) {
+        markAllRead.addEventListener('click', () => {
+          unreadNotifications.forEach(notification => {
+            notification.classList.remove('unread');
+          });
+          notificationCount.textContent = '0';
+        });
+      }
+
+      // Individual notification click handling
+      document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', () => {
+          if (item.classList.contains('unread')) {
+            item.classList.remove('unread');
+            const currentCount = parseInt(notificationCount.textContent);
+            notificationCount.textContent = currentCount - 1;
+          }
+        });
+      });
+    }
+    
+    function initializeChatWidget() {
+      // Chat widget functionality
+      const chatButton = document.querySelector('.chat-button');
+      const chatWindow = document.querySelector('.chat-window');
+      const minimizeButton = document.querySelector('.minimize-button');
+      const chatInput = document.querySelector('.chat-input input');
+      const sendButton = document.querySelector('.send-button');
+      const chatMessages = document.querySelector('.chat-messages');
+      const chatTabs = document.querySelectorAll('.chat-tab');
+      const notificationBadge = document.querySelector('.notification-badge');
+      
+      if (!chatButton) return;
+
+      // Toggle chat window
+      chatButton.addEventListener('click', () => {
+        chatWindow.classList.toggle('active');
+        if (chatWindow.classList.contains('active')) {
+          notificationBadge.style.display = 'none';
+        }
+      });
+
+      // Minimize chat window
+      if (minimizeButton) {
+        minimizeButton.addEventListener('click', () => {
+          chatWindow.classList.remove('active');
+        });
+      }
+
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+          const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const messageHTML = `
+            <div class="message sent">
+              <div class="message-sender">You</div>
+              <div class="message-content">
+                ${message}
+              </div>
+              <div class="message-time">${time}</div>
+            </div>
+          `;
+          chatMessages.insertAdjacentHTML('beforeend', messageHTML);
+          chatInput.value = '';
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+
+      if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+      }
+      
+      if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendMessage();
+          }
+        });
+      }
+
+      // Chat tabs functionality
+      chatTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          chatTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          // Here you would typically load different chat content
+        });
+      });
+    }
 
     // Feedback Modal Functions
     function openFeedbackModal() {
-      document.getElementById('feedbackModal').classList.add('active');
+      const modal = document.getElementById('feedbackModal');
+      if (modal) {
+        modal.classList.add('active');
+      }
     }
 
     function closeFeedbackModal() {
-      document.getElementById('feedbackModal').classList.remove('active');
+      const modal = document.getElementById('feedbackModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
     }
 
     // Close modal when clicking outside
     window.onclick = function(event) {
       const modal = document.getElementById('feedbackModal');
-      if (event.target === modal) {
+      if (modal && event.target === modal) {
         closeFeedbackModal();
       }
     }
 
     // Handle feedback form submission
-    document.querySelector('.feedback-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const form = e.target;
-      const submitBtn = form.querySelector('.submit-btn');
-      const originalBtnText = submitBtn.textContent;
-      
-      try {
-        submitBtn.textContent = 'Submitting...';
-        submitBtn.disabled = true;
+    const feedbackForm = document.querySelector('.feedback-form');
+    if (feedbackForm) {
+      feedbackForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        const formData = new FormData(form);
-        const response = await fetch('/submit_feedback', {
-          method: 'POST',
-          body: formData
-        });
+        const form = e.target;
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalBtnText = submitBtn.textContent;
         
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-          // Show success message
-          alert(result.message);
-          // Reset form and close modal
-          form.reset();
-          closeFeedbackModal();
-        } else {
-          throw new Error(result.message || 'Failed to submit feedback');
-        }
-      } catch (error) {
-        alert(error.message || 'There was an error submitting your feedback. Please try again.');
-      } finally {
-        submitBtn.textContent = originalBtnText;
-        submitBtn.disabled = false;
-      }
-    });
-
-    // Add navigation for action buttons using data-href attributes
-    document.querySelectorAll('.action-button').forEach(button => {
-      button.addEventListener('click', function() {
-        const href = this.getAttribute('data-href');
-        if (href) {
-          window.location.href = href;
+        try {
+          submitBtn.textContent = 'Submitting...';
+          submitBtn.disabled = true;
+          
+          const formData = new FormData(form);
+          const response = await fetch('/submit_feedback', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (result.status === 'success') {
+            // Show success message
+            alert(result.message);
+            // Reset form and close modal
+            form.reset();
+            closeFeedbackModal();
+          } else {
+            throw new Error(result.message || 'Failed to submit feedback');
+          }
+        } catch (error) {
+          alert(error.message || 'There was an error submitting your feedback. Please try again.');
+        } finally {
+          submitBtn.textContent = originalBtnText;
+          submitBtn.disabled = false;
         }
       });
-    });
-
-    // Open feedback modal with the feedback button
-    document.getElementById('feedbackBtn').addEventListener('click', function() {
-      openFeedbackModal();
-    });
+    }
   </script>
 </body>
 </html>

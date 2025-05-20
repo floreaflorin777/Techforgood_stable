@@ -488,3 +488,63 @@ textarea.form-input {
     resize: vertical;
     min-height: 80px;
 }
+
+/* Logged in section styles */
+.logged-in-info {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.logged-in-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.logged-in-info p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.logged-in-info .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.logged-in-info button {
+    min-width: 150px;
+}
+
+/* Flash messages styles */
+.flash-messages {
+    width: 80%;
+    max-width: 800px;
+    margin: 10px auto 20px;
+}
+
+.flash-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 15px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    text-align: center;
+    animation: fadeOut 10s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+}

@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, send_from_directory, request, jsonify
+from flask import Blueprint, render_template, send_from_directory, request, jsonify, redirect, url_for, flash
 import os
 from app.firestore_models import User, Volunteer
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from datetime import datetime
+from flask_jwt_extended.exceptions import NoAuthorizationError
 
 main = Blueprint('main', __name__)
 
@@ -17,10 +18,12 @@ def register():
 
 @main.route('/admin/dashboard')
 def admin_dashboard():
+    # Authentication check is handled by middleware
     return render_template('admin_dashboard.html')
 
 @main.route('/volunteer/dashboard')
 def volunteer_dashboard():
+    # Authentication check is handled by middleware
     return render_template('volunteer_dashboard.html')
 
 @main.route('/contact')
@@ -29,22 +32,27 @@ def contact():
 
 @main.route('/volunteer/shifts')
 def shifts():
+    # Authentication check is handled by middleware
     return render_template('shifts.html')
 
 @main.route('/volunteer/report_hours')
 def report_hours():
+    # Authentication check is handled by middleware
     return render_template('report_hours.html')
 
 @main.route('/volunteer/my_shifts')
 def my_shifts():
+    # Authentication check is handled by middleware
     return render_template('my_shifts.html')
 
 @main.route('/volunteer/my_profile')
 def my_profile():
+    # Authentication check is handled by middleware
     return render_template('my_profile.html')
 
 @main.route('/volunteer/calendar')
 def calendar():
+    # Authentication check is handled by middleware
     return render_template('calendar.html')
 
 @main.route('/submit_feedback', methods=['POST'])

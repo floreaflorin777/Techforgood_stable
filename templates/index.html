@@ -6,6 +6,11 @@
     <title>Tech for Good</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/logoinvisiblebg.png') }}" type="image/png">
+    
+    <!-- Prevent caching for pages with authentication -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <header>
@@ -15,24 +20,47 @@
         </div>
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/">About Us</a></li>
-                <li><a href="/contact">Contact</a></li>
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/" class="nav-link">About Us</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
             </ul>
         </nav>
     </header>
     <main>
+        <!-- Flash messages section -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
         <h2>Welcome to Tech for Good</h2>
-        <p>Join us in our mission to support the community by managing and distributing food resources effectively. Choose your role to proceed.</p>
-        <div class="buttons">
+        <p>Join us in our mission to support the community by managing and distributing food resources effectively.</p>
+        
+        <!-- Login buttons section - shown when not logged in -->
+        <div id="loginButtons" class="buttons">
             <button class="admin-btn" onclick="showLoginForm('admin')">Admin Login</button>
             <button class="employee-btn" onclick="showLoginForm('volunteer')">Employee Login</button>
+        </div>
+        
+        <!-- Logged in user section - hidden by default -->
+        <div id="loggedInSection" style="display: none;" class="logged-in-info">
+            <h3 id="welcomeMessage">Hello, User!</h3>
+            <p id="userRole">You are logged in as: Role</p>
+            <div class="buttons">
+                <button id="dashboardBtn" class="admin-btn">Go to Dashboard</button>
+                <button onclick="performLogout()" class="employee-btn">Log Out</button>
+            </div>
         </div>
 
         <div id="loginForm" class="login-form" style="display: none;">
             <h3 id="loginTitle">Login</h3>
             <form onsubmit="handleLogin(event)">
-                <input type="hidden" id="userRole" value="">
+                <input type="hidden" id="userRoleInput" value="">
                 <div class="form-group">
                     <label for="email">Email:</label>
                     <input type="email" id="email" class="form-input" required>
@@ -41,6 +69,7 @@
                     <label for="password">Password:</label>
                     <input type="password" id="password" class="form-input" required>
                 </div>
+                <div id="loginError" class="error-message" style="color: red; display: none; margin-bottom: 10px;"></div>
                 <button type="submit" class="btn login-submit-btn">Login</button>
                 <button type="button" class="btn cancel-btn" onclick="hideLoginForm()">Cancel</button>
             </form>
@@ -62,15 +91,113 @@
         </div>
     </footer>
 
+    <!-- Include authentication script -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script>
+        // Check if user is logged in when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for existing user session
+            checkLoginState();
+            
+            // Preserve login state for navigation links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Only for same-domain links
+                    if (this.hostname === window.location.hostname) {
+                        e.preventDefault();
+                        window.location.href = this.href;
+                    }
+                });
+            });
+            
+            // Add handler for logo/brand click
+            document.querySelector('.logo').addEventListener('click', function() {
+                window.location.href = '/';
+            });
+        });
+        
+        // Check current login state and update UI accordingly
+        async function checkLoginState() {
+            console.log("Checking login state...");
+            const token = localStorage.getItem('token');
+            const loggedIn = localStorage.getItem('loggedIn') === 'true';
+            
+            if (token && loggedIn) {
+                try {
+                    // Verify token validity with server
+                    const response = await fetch('/auth/user', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        // Valid token - show logged in UI
+                        const userData = await response.json();
+                        console.log("User data:", userData);
+                        showLoggedInUI(userData.user);
+                    } else {
+                        // Invalid token - clear session
+                        console.log("Invalid token - clearing session");
+                        clearUserSession();
+                        showLoginUI();
+                    }
+                } catch (error) {
+                    console.error("Error verifying token:", error);
+                    showLoginUI();
+                }
+            } else {
+                // No token or not logged in flag - show login UI
+                console.log("No valid session found");
+                showLoginUI();
+            }
+        }
+        
+        // Show the logged in UI with user data
+        function showLoggedInUI(user) {
+            console.log("Showing logged in UI for:", user);
+            const name = user.name || localStorage.getItem('userName') || 'User';
+            const role = user.role || localStorage.getItem('userRole') || 'user';
+            
+            document.getElementById('welcomeMessage').textContent = `Hello, ${name}!`;
+            document.getElementById('userRole').textContent = `You are logged in as: ${role}`;
+            
+            const dashboardBtn = document.getElementById('dashboardBtn');
+            if (role === 'admin') {
+                dashboardBtn.textContent = 'Go to Admin Dashboard';
+                dashboardBtn.onclick = () => window.location.href = '/admin/dashboard';
+            } else {
+                dashboardBtn.textContent = 'Go to Volunteer Dashboard';
+                dashboardBtn.onclick = () => window.location.href = '/volunteer/dashboard';
+            }
+            
+            document.getElementById('loggedInSection').style.display = 'block';
+            document.getElementById('loginButtons').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'none';
+        }
+        
+        // Show the login UI (not logged in)
+        function showLoginUI() {
+            document.getElementById('loggedInSection').style.display = 'none';
+            document.getElementById('loginButtons').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+        }
+
         function showLoginForm(role) {
             const form = document.getElementById('loginForm');
             const title = document.getElementById('loginTitle');
-            const roleInput = document.getElementById('userRole');
+            const roleInput = document.getElementById('userRoleInput');
+            
+            // Hide any previous error messages
+            document.getElementById('loginError').style.display = 'none';
             
             title.textContent = `${role.charAt(0).toUpperCase() + role.slice(1)} Login`;
             roleInput.value = role;
             form.style.display = 'block';
+            
+            // Clear form fields
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
         }
 
         function hideLoginForm() {
@@ -82,39 +209,37 @@
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const role = document.getElementById('userRole').value;
-
+            const role = document.getElementById('userRoleInput').value;
+            
+            // Display login in progress message
+            const submitBtn = document.querySelector('.login-submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
             try {
-                const response = await fetch('/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        role: role
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Store the token
-                    localStorage.setItem('token', data.access_token);
+                const result = await performLogin(email, password, role);
+                
+                if (result && result.error) {
+                    // Show error message
+                    const errorElement = document.getElementById('loginError');
+                    errorElement.textContent = result.error;
+                    errorElement.style.display = 'block';
                     
-                    // Redirect based on role
-                    if (role === 'admin') {
-                        window.location.href = '/admin/dashboard';
-                    } else {
-                        window.location.href = '/volunteer/dashboard';
-                    }
-                } else {
-                    alert(data.error || 'Login failed');
+                    // Reset submit button
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
                 }
+                // If successful, performLogin will redirect
             } catch (error) {
-                console.error('Login error:', error);
-                alert('An error occurred during login');
+                console.error("Login error:", error);
+                const errorElement = document.getElementById('loginError');
+                errorElement.textContent = "An unexpected error occurred";
+                errorElement.style.display = 'block';
+                
+                // Reset submit button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         }
     </script>

@@ -1,35 +1,18 @@
-// Token management
+// Token management - use the functions from auth.js instead
 function getToken() {
     return localStorage.getItem('token');
 }
 
-function checkAuth() {
-    const token = getToken();
-    if (!token) {
-        window.location.href = '/';
-        return false;
-    }
-    return true;
-}
-
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
-    if (!checkAuth()) return;
-
+    // Setup navigation
+    setupNavigation();
+    
     // Load dashboard data
     loadDashboardData();
     
     // Set up auto-refresh of dashboard data every 5 minutes
     setInterval(loadDashboardData, 300000);
-    
-    // Setup navigation
-    setupNavigation();
-    
-    // Setup logout
-    document.getElementById('logout').addEventListener('click', function() {
-        localStorage.removeItem('token');
-        window.location.href = '/';
-    });
 });
 
 function setupNavigation() {
