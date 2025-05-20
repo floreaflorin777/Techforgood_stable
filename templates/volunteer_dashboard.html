@@ -75,6 +75,30 @@
       color: #FFD700;
     }
 
+    .logout-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background-color: #FFD700; 
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .logout-button:hover {
+      background-color: #e6c200; 
+    }
+
+    .logout-button i {
+      color: #000 !important; 
+      font-size: 1.1em;
+    }
+
     #calendar {
       max-width: 900px;
       margin: 20px auto;
@@ -272,10 +296,6 @@
     }
 
     /* Enhanced notification styles */
-    .notification-bell {
-      position: relative;
-      cursor: pointer;
-    }
 
     .notification-dropdown {
       position: absolute;
@@ -931,11 +951,15 @@
           <h1>Food Bank</h1>
           <h2>Tech for good</h2>
         </div>
+<<<<<<< HEAD
         <div style="display: flex; align-items: center; gap: 20px;">
           <a href="/" class="home-button" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 5px; background-color: #f8f9fa; padding: 8px 15px; border-radius: 20px; transition: all 0.3s ease;">
             <i class="fas fa-home"></i>
             <span>Home</span>
           </a>
+=======
+        <div style="display: flex; align-items: center; gap: 15px;">
+>>>>>>> 25824247dd1b5371d989b8d7f628f05a8f80873d
           <div class="notification-bell">
             <i class="fas fa-bell fa-lg"></i>
             <span class="notification-count">3</span>
@@ -962,6 +986,11 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="action-button">
+            <a class="logout-button" href="#" id="logout">
+              <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
           </div>
         </div>
       </div>
@@ -1487,7 +1516,21 @@
           submitBtn.disabled = false;
         }
       });
+<<<<<<< HEAD
     }
+=======
+    });
+
+    // Open feedback modal with the feedback button
+    document.getElementById('feedbackBtn').addEventListener('click', function() {
+      openFeedbackModal();
+    });
+
+    document.getElementById('logout').addEventListener('click', function() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    });
+>>>>>>> 25824247dd1b5371d989b8d7f628f05a8f80873d
   </script>
 </body>
 </html>
